@@ -2047,11 +2047,11 @@ function startTimerUI(endTime, totalSeconds) {
   stopTimerUI();
   timerEndTime = endTime;
   document.getElementById('timer-wrap').classList.remove('hidden-el');
-  const initLeft = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+  const initLeft = Math.min(totalSeconds, Math.max(0, Math.ceil((endTime - Date.now()) / 1000)));
   updateTimerUI(initLeft, totalSeconds);
 
   timerInterval = setInterval(() => {
-    const left = Math.max(0, Math.ceil((timerEndTime - Date.now()) / 1000));
+    const left = Math.min(totalSeconds, Math.max(0, Math.ceil((timerEndTime - Date.now()) / 1000)));
     updateTimerUI(left, totalSeconds);
     if (left <= 0) stopTimerUI();
   }, 200);
