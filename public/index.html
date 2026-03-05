@@ -2385,7 +2385,7 @@ function render(state) {
       : `<span class="turn-name">${esc(current?.name || '?')}</span> 的回合`;
 
     if (state.turnEndTime && !timerInterval) {
-      const total = isKnock ? 5 : 15;
+      const total = isKnock ? 8 : 15;
       startTimerUI(state.turnEndTime, total);
     }
   }
