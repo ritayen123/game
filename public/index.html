@@ -3272,8 +3272,9 @@ function copyRoomLink() {
 refreshIcons();
 
 document.getElementById('btn-join').addEventListener('click', doJoin);
-document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter') doJoin(); });
-document.getElementById('input-room').addEventListener('keydown', e => { if (e.key === 'Enter') doJoin(); });
+const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter' && !isMobile) doJoin(); });
+document.getElementById('input-room').addEventListener('keydown', e => { if (e.key === 'Enter' && !isMobile) doJoin(); });
 
 function doJoin() {
   const name   = document.getElementById('input-name').value.trim();
