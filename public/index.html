@@ -1,0 +1,3336 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>韭點開始接字遊戲</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #84D2DD;
+    --surface:  #ffffff;
+    --card:     #ffffff;
+    --border:   #000000;
+    --accent:   #01A94D;
+    --accent2:  #AAF952;
+    --teal:     #84D2DD;
+    --pink:     #F1B9E1;
+    --danger:   #ff3b5c;
+    --success:  #01A94D;
+    --warn:     #ff8c00;
+    --text:     #000000;
+    --muted:    #555555;
+    --radius:   6px;
+    --shadow:   3px 3px 0 #000;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── SCREENS ── */
+  .screen { display: none; height: 100vh; height: 100dvh; overflow-y: auto; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ── JOIN SCREEN ── */
+  #join-screen {
+    align-items: center;
+    justify-content: flex-start;
+    padding: 24px;
+    padding-top: max(24px, env(safe-area-inset-top, 24px));
+    background: var(--bg);
+  }
+
+  .join-logo {
+    width: 110px; height: 110px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 8px;
+    animation: bounce 2.4s ease-in-out infinite;
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .join-logo img {
+    width: 110px; height: 110px;
+    object-fit: cover;
+    border-radius: var(--radius);
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    45%       { transform: translateY(-10px) scale(1.04); }
+    55%       { transform: translateY(-8px) scale(1.04); }
+  }
+
+  .join-title {
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: var(--text);
+    margin-bottom: 28px;
+    text-align: center;
+  }
+
+  .join-sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 32px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  .join-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    width: 100%;
+    max-width: 380px;
+    box-shadow: var(--shadow);
+  }
+
+  .social-links {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .social-follow {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 2px 2px 0 #000;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    justify-content: center;
+    text-align: center;
+    transition: background .15s, transform .1s, box-shadow .1s;
+  }
+  .social-follow:hover {
+    background: var(--accent2);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 #000;
+  }
+  .social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius);
+    background: var(--surface);
+    border: 2px solid var(--border);
+    color: var(--text);
+    transition: background .15s, transform .1s, box-shadow .1s;
+    text-decoration: none;
+    box-shadow: 2px 2px 0 #000;
+    flex-shrink: 0;
+  }
+  .social-link:hover {
+    background: var(--accent2);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 #000;
+  }
+  .social-link svg { width: 18px; height: 18px; }
+
+  .field { margin-bottom: 20px; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .field input {
+    width: 100%;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 17px;
+    padding: 13px 16px;
+    outline: none;
+    transition: box-shadow .15s;
+    -webkit-appearance: none;
+    font-family: inherit;
+  }
+  .field input:focus {
+    box-shadow: 3px 3px 0 var(--accent);
+  }
+  .field input::placeholder { color: var(--muted); font-size: 14px; }
+
+  .join-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 15px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 16px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform .1s ease, box-shadow .1s;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+    letter-spacing: 0.5px;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .btn:hover  { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #000; }
+  .btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+
+  .btn-primary {
+    background: var(--accent2);
+    color: var(--text);
+  }
+
+  .btn-danger {
+    background: var(--danger);
+    color: #fff;
+    font-size: 15px;
+    padding: 13px 20px;
+  }
+
+  .btn-success {
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .btn:disabled { opacity: 0.38; pointer-events: none; transform: none !important; box-shadow: none !important; }
+
+  /* ── GAME SCREEN ── */
+  #game-screen { padding: 0; background: var(--bg); overflow: hidden; }
+
+  .game-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 16px;
+    background: var(--accent2);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .game-header h1 {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: 2px;
+  }
+
+  .room-badge {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    color: var(--text);
+    cursor: pointer;
+    box-shadow: 2px 2px 0 #000;
+    transition: transform .1s, box-shadow .1s;
+  }
+  .room-badge:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 #000;
+  }
+
+  .game-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    -webkit-overflow-scrolling: touch;
+    min-height: 0;
+  }
+
+  .game-action {
+    flex-shrink: 0;
+    padding: 0 12px 12px;
+  }
+
+  /* ── 玩家清單 ── */
+  .player-list-panel {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 3px 3px 0 #000;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s;
+  }
+  .panel-header:hover { background: #f5f5f5; }
+
+  .panel-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--muted);
+  }
+
+  .panel-toggle { color: var(--muted); font-size: 11px; transition: transform .25s; }
+  .panel-toggle.open { transform: rotate(180deg); }
+
+  .player-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 8px;
+    padding: 12px;
+    justify-content: center;
+  }
+  .player-list.hidden { display: none; }
+
+  /* ── 玩家圓形頭像 ── */
+  .player-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    position: relative;
+    min-width: 52px;
+  }
+
+  .player-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: var(--teal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--text);
+    flex-shrink: 0;
+    border: 2px solid var(--border);
+    transition: transform .2s, box-shadow .2s;
+  }
+
+  .player-chip.current .player-avatar {
+    background: var(--accent2);
+    box-shadow: 3px 3px 0 #000;
+    transform: scale(1.12);
+  }
+
+  .player-chip.eliminated .player-avatar {
+    background: #ccc;
+    box-shadow: none;
+    opacity: 0.4;
+    transform: none;
+  }
+
+  .player-chip.pending .player-avatar {
+    background: #eee;
+    opacity: 0.5;
+    border-style: dashed;
+  }
+
+  .player-chip-name {
+    font-size: 11px;
+    color: var(--muted);
+    max-width: 52px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 500;
+    transition: color .2s;
+  }
+
+  .player-chip.current .player-chip-name { color: var(--text); font-weight: 900; }
+  .player-chip.eliminated .player-chip-name { text-decoration: line-through; opacity: 0.4; }
+
+  .chip-order {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    font-size: 9px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    transition: background .2s, color .2s;
+  }
+
+  .player-chip.current .chip-order {
+    background: var(--text);
+    color: var(--accent2);
+    border-color: var(--text);
+  }
+
+  /* ── 當前句子 ── */
+  .sentence-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px 20px;
+    text-align: center;
+    position: relative;
+    overflow: visible;
+    flex-shrink: 0;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .sentence-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--accent2);
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  .sentence-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .sentence-text {
+    font-size: 34px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    color: var(--text);
+    line-height: 1.35;
+    word-break: break-all;
+  }
+  .sentence-new {
+    color: #000;
+    background: var(--pink);
+    position: relative;
+    padding: 0 3px;
+    border-radius: 3px;
+  }
+  .sentence-new::after { display: none; }
+
+  /* ── 回合狀態 ── */
+  .turn-bar {
+    background: transparent;
+    border: none;
+    padding: 6px 14px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .turn-info {
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .turn-info::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text);
+    flex-shrink: 0;
+  }
+  .turn-name {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-weight: 900;
+    color: var(--text);
+    box-shadow: 2px 2px 0 #000;
+  }
+
+  .timer-wrap { display: flex; align-items: center; gap: 6px; }
+
+  .timer-circle {
+    width: 44px;
+    height: 44px;
+    position: relative;
+    flex-shrink: 0;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    box-shadow: 2px 2px 0 #000;
+  }
+
+  .timer-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+  .timer-track { fill: none; stroke: #ddd; stroke-width: 3; }
+  .timer-fill {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 113;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke .5s;
+  }
+  .timer-fill.warn   { stroke: var(--warn); }
+  .timer-fill.danger { stroke: var(--danger); }
+
+  .timer-number {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--text);
+    z-index: 1;
+  }
+
+  /* ── 行動區 ── */
+  .action-card {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    box-shadow: 3px 3px 0 #000;
+  }
+
+  .action-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--accent2);
+    margin-bottom: 14px;
+  }
+
+  /* 輸入區 */
+  .input-builder {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .input-builder input {
+    flex: 1;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 20px;
+    padding: 12px 14px;
+    outline: none;
+    transition: box-shadow .15s;
+    min-width: 0;
+    -webkit-appearance: none;
+    text-align: center;
+    font-family: inherit;
+  }
+  .input-builder input:focus {
+    box-shadow: 3px 3px 0 var(--accent2);
+  }
+  .input-builder input::placeholder { color: var(--muted); font-size: 14px; }
+
+  .sentence-middle {
+    font-size: 18px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: var(--text);
+    flex-shrink: 0;
+    padding: 0 4px;
+    text-align: center;
+    max-width: 140px;
+    word-break: break-all;
+  }
+
+  .preview-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+
+  .preview-text {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--text);
+    background: #f5f5f5;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    text-align: center;
+    margin-bottom: 16px;
+    min-height: 50px;
+    word-break: break-all;
+  }
+
+  .preview-text .part-new { color: #000; background: var(--accent2); padding: 0 2px; border-radius: 3px; }
+  .preview-text .part-old { color: var(--text); }
+
+  /* 敲頭按鈕 */
+  .knock-section { text-align: center; }
+
+  .knock-votes-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+
+  .knock-progress {
+    height: 5px;
+    background: #ddd;
+    border-radius: 3px;
+    margin-bottom: 18px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .knock-progress-fill {
+    height: 100%;
+    background: var(--danger);
+    border-radius: 3px;
+    transition: width .35s ease;
+  }
+
+  .btn-knock {
+    font-size: 46px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    width: 96px;
+    height: 96px;
+    cursor: pointer;
+    transition: transform .1s ease, box-shadow .1s;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .btn-knock:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 #000; }
+  .btn-knock:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+  .btn-knock.voted {
+    background: var(--pink);
+    border-color: var(--border);
+  }
+  .btn-knock:disabled { opacity: 0.3; pointer-events: none; }
+
+  /* 等待訊息 */
+  .status-msg {
+    text-align: center;
+    padding: 28px 16px;
+    color: var(--muted);
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .status-msg .emoji { display: flex; justify-content: center; margin-bottom: 12px; }
+  .status-msg .emoji svg { width: 42px; height: 42px; }
+  .status-msg strong { color: var(--text); }
+
+  /* ── 遊戲結束 ── */
+  #gameover-screen {
+    align-items: center;
+    justify-content: flex-start;
+    padding: 28px 20px;
+    padding-bottom: max(28px, env(safe-area-inset-bottom, 28px));
+    background: var(--bg);
+    gap: 12px;
+  }
+
+  .gameover-emoji {
+    width: 90px; height: 90px;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 8px;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  .gameover-emoji svg { width: 80px; height: 80px; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.07)} }
+
+  .gameover-title {
+    font-size: 28px;
+    font-weight: 900;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    color: var(--text);
+    text-align: center;
+  }
+
+  .gameover-winner {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: var(--text);
+    background: var(--accent2);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 3px 3px 0 #000;
+  }
+
+  .gameover-countdown {
+    color: var(--muted);
+    font-size: 14px;
+    text-align: center;
+  }
+
+  /* 最終句子卡 */
+  .gameover-sentence {
+    width: 100%;
+    max-width: 440px;
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: 3px 3px 0 #000;
+    text-align: center;
+    position: relative;
+  }
+  .gameover-sentence::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--accent2);
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .gameover-sentence-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .gameover-sentence-text {
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: var(--text);
+    word-break: break-all;
+    line-height: 1.4;
+  }
+
+  /* 排名列表 */
+  .gameover-ranks {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .gameover-rank-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .gameover-rank-item.rank-1 {
+    background: var(--accent2);
+    box-shadow: 3px 3px 0 #000;
+  }
+  .gameover-rank-badge {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: #eee;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .gameover-rank-item.rank-1 .gameover-rank-badge { background: #fff; }
+  .gameover-rank-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .gameover-rank-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .gameover-rank-item.rank-1 .gameover-rank-name { font-weight: 900; }
+  .gameover-rank-sentence {
+    display: flex;
+    gap: 3px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .gameover-rank-sentence::-webkit-scrollbar { display: none; }
+  .gameover-rank-char {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 21px; height: 21px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1.5px solid #000;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .gameover-rank-char.mine { background: var(--accent2); }
+  .gameover-rank-char.other {
+    background: #eee;
+    color: #aaa;
+    border-color: #ccc;
+    font-weight: 500;
+  }
+  .gameover-rank-reason {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  /* 分享按鈕 */
+  .gameover-actions {
+    width: 100%;
+    max-width: 440px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 4px;
+  }
+  .btn-share {
+    background: var(--teal);
+    color: var(--text);
+    border: 2px solid var(--border);
+    font-size: 16px;
+  }
+
+  /* ── 分享卡內容（HTML 渲染，無 canvas 字體問題）── */
+  .share-card {
+    background: var(--bg);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .share-card-header {
+    background: var(--bg);
+    border-bottom: 2px solid var(--border);
+    padding: 12px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 900;
+    letter-spacing: 1px;
+  }
+  .share-card-body {
+    background: var(--card);
+    padding: 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .sc-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-weight: 700;
+    text-align: center;
+  }
+  .sc-sentence {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+  .sc-sentence span {
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  .sc-rank-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #f5f5f5;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 8px 10px;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .sc-rank-row.winner {
+    background: var(--accent2);
+    box-shadow: 3px 3px 0 #000;
+  }
+  .sc-rank-badge { font-size: 18px; flex-shrink: 0; }
+  .sc-rank-info { flex: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .sc-rank-name { font-size: 14px; font-weight: 700; }
+  .sc-rank-row.winner .sc-rank-name { font-weight: 900; }
+  .sc-rank-chars { display: flex; gap: 2px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .sc-rank-chars::-webkit-scrollbar { display: none; }
+  .sc-char {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px; height: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    border: 1.5px solid #000;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+  .sc-char.mine { background: var(--accent2); }
+  .sc-char.other { background: #eee; color: #aaa; border-color: #ccc; font-weight: 400; }
+  .sc-rank-reason { font-size: 11px; color: var(--muted); font-weight: 600; flex-shrink: 0; }
+  .share-card-footer {
+    border-top: 2px solid #e0e0e0;
+    background: var(--card);
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .share-card-footer img {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+  }
+  .share-card-footer-text { font-size: 11px; font-weight: 700; color: var(--muted); }
+
+  /* ── Toast 通知 ── */
+  .toast-container {
+    position: fixed;
+    top: 66px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    pointer-events: none;
+    width: 92%;
+    max-width: 400px;
+  }
+
+  .toast {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 11px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: center;
+    animation: fadeInDown .28s ease;
+    box-shadow: 3px 3px 0 #000;
+    color: var(--text);
+  }
+
+  .toast.success { background: var(--accent2); border-color: var(--border); color: #000; }
+  .toast.danger  { background: var(--pink);    border-color: var(--border); color: #000; }
+  .toast.warn    { background: #ffe4b3;         border-color: #c96a00;      color: #000; }
+  .toast.info    { background: #d0f0f5;         border-color: #0099aa;      color: #000; }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* ── 分享圖片 Modal ── */
+  .share-img-modal {
+    position: fixed; inset: 0; z-index: 300;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .share-img-modal.hidden { display: none; }
+  .share-img-backdrop {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.75);
+  }
+  .share-img-box {
+    position: relative; z-index: 1;
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: 5px 5px 0 #000;
+    padding: 16px;
+    width: 100%; max-width: 420px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .share-img-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .share-img-topbar span { font-size: 15px; font-weight: 900; }
+  .share-img-close {
+    background: none; border: none; cursor: pointer;
+    display: flex; padding: 4px;
+  }
+  .share-img-preview {
+    width: 100%; display: block;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+  }
+  .share-img-hint {
+    font-size: 12px; color: var(--muted); text-align: center;
+  }
+  .share-img-actions { display: flex; flex-direction: column; gap: 8px; }
+
+  /* ── 倒計時覆蓋 ── */
+  .countdown-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(132,210,221,0.93);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 500;
+  }
+  .countdown-overlay.hidden { display: none; }
+
+  .countdown-number {
+    font-size: 120px;
+    font-weight: 900;
+    color: var(--text);
+    animation: zoomIn .55s ease;
+    line-height: 1;
+  }
+
+  .countdown-label {
+    font-size: 18px;
+    color: var(--muted);
+    margin-top: 10px;
+    letter-spacing: 1px;
+    font-weight: 700;
+  }
+
+  @keyframes zoomIn {
+    from { transform: scale(1.9); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+
+  /* ── 模式選擇卡片 ── */
+  .mode-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .mode-card {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 8px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform .1s, box-shadow .1s;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .mode-card:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 #000; }
+  .mode-card.active {
+    background: var(--accent2);
+    box-shadow: 3px 3px 0 #000;
+  }
+
+  .mode-icon  { height: 34px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; }
+  .mode-icon svg { width: 26px; height: 26px; }
+  .mode-title { font-size: 14px; font-weight: 900; margin-bottom: 3px; color: var(--text); }
+  .mode-desc  { font-size: 11px; color: var(--muted); letter-spacing: 0.2px; }
+
+  /* ── 位置選擇器 ── */
+  .picker-hint {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-align: center;
+    letter-spacing: 0.3px;
+  }
+
+  .sentence-picker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 10px;
+    background: #f5f5f5;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 0;
+    min-height: 70px;
+  }
+
+  .char-cell {
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--text);
+    padding: 4px 2px;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .insert-slot {
+    min-width: 30px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .slot-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    border: 2px dashed #aaa;
+    color: #aaa;
+    font-size: 15px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .18s ease;
+    flex-shrink: 0;
+  }
+  .insert-slot:hover .slot-icon {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: scale(1.1);
+  }
+  .insert-slot.selected .slot-icon {
+    border: 2px solid var(--border);
+    background: var(--accent2);
+    color: var(--text);
+    box-shadow: 2px 2px 0 #000;
+    transform: scale(1.25);
+  }
+
+  .char-input-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .char-input-label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 700;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+
+  #input-char {
+    width: 66px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 28px;
+    padding: 8px;
+    outline: none;
+    text-align: center;
+    flex-shrink: 0;
+    -webkit-appearance: none;
+    font-family: inherit;
+    transition: box-shadow .15s;
+    box-shadow: 2px 2px 0 #000;
+  }
+  #input-char:focus {
+    box-shadow: 3px 3px 0 var(--accent);
+  }
+
+  .preview-inline {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    flex: 1;
+    text-align: left;
+    word-break: break-all;
+    line-height: 1.4;
+  }
+  .preview-inline .ins { color: #000; background: var(--accent2); padding: 0 2px; border-radius: 3px; }
+  .preview-inline .old { color: var(--text); }
+
+  /* icon sizes */
+  .btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .btn-knock svg { width: 40px; height: 40px; }
+  .knock-votes-label svg { width: 16px; height: 16px; vertical-align: middle; }
+
+  /* ── UTILS ── */
+  .hidden-el { display: none !important; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.25); border-radius: 2px; }
+
+  /* ── 閒置踢除提示 ── */
+  .idle-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(132,210,221,0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1200;
+    padding: 24px;
+    text-align: center;
+  }
+  .idle-overlay.hidden { display: none; }
+  .idle-overlay h2 {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--text);
+    margin: 16px 0 8px;
+  }
+  .idle-overlay p {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  /* 複製邀請連結按鈕 */
+  .btn-copy-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    margin-top: 8px;
+    padding: 9px 12px;
+    background: var(--surface);
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    letter-spacing: 0.3px;
+    transition: background .15s, color .15s, border-color .15s, box-shadow .1s, transform .1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-copy-link:hover {
+    background: var(--accent2);
+    border-style: solid;
+    border-color: var(--border);
+    color: var(--text);
+    transform: translate(-1px,-1px);
+    box-shadow: 2px 2px 0 #000;
+  }
+  .btn-copy-link svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+  /* ── 加入頁次要按鈕 ── */
+  .join-secondary-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .btn-ghost {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px;
+    background: transparent;
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s, transform .1s, box-shadow .1s;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+    letter-spacing: 0.3px;
+  }
+  .btn-ghost:hover  { background: var(--teal); transform: translate(-1px,-1px); box-shadow: 2px 2px 0 #000; }
+  .btn-ghost:active { transform: translate(1px,1px); box-shadow: none; }
+  .btn-ghost svg    { width: 15px; height: 15px; flex-shrink: 0; }
+
+  /* ── 試玩畫面 ── */
+  #practice-screen { padding: 0; background: var(--bg); }
+
+  .practice-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 13px 16px;
+    background: var(--accent2);
+    border-bottom: 2px solid var(--border);
+    flex-shrink: 0;
+  }
+  .practice-header-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: 1.5px;
+  }
+  .practice-exit-btn {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 12px;
+    padding: 5px 11px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: background .15s, transform .1s, box-shadow .1s;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .practice-exit-btn:hover { background: var(--pink); transform: translate(-1px,-1px); box-shadow: 3px 3px 0 #000; }
+  .practice-exit-btn svg   { width: 13px; height: 13px; }
+
+  .practice-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+  .practice-footer {
+    flex-shrink: 0;
+    padding: 0 14px 16px;
+  }
+
+  .practice-progress {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .progress-dot {
+    height: 4px;
+    flex: 1;
+    border-radius: 2px;
+    background: #ccc;
+    transition: background .35s;
+  }
+  .progress-dot.done   { background: var(--accent); }
+  .progress-dot.active { background: var(--text); }
+
+  .step-instruction {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    flex-shrink: 0;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .step-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  .step-main-title {
+    font-size: 19px;
+    font-weight: 900;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .step-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  /* ── 教學 Modal（底部滑入）── */
+  .tutorial-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1100;
+    display: flex;
+    align-items: flex-end;
+  }
+  .tutorial-overlay.hidden { display: none; }
+
+  .tutorial-modal {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-top: 3px solid var(--border);
+    border-radius: 16px 16px 0 0;
+    width: 100%;
+    max-height: 82vh;
+    max-height: 82dvh;
+    overflow-y: auto;
+    padding: 20px 20px 36px;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp .28s ease;
+    box-shadow: 0 -4px 0 #000;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  .tutorial-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    flex-shrink: 0;
+  }
+
+  .tutorial-title {
+    font-size: 19px;
+    font-weight: 900;
+    color: var(--text);
+  }
+
+  .tutorial-close {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .15s;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .tutorial-close:hover { background: var(--pink); }
+  .tutorial-close svg   { width: 15px; height: 15px; }
+
+  .tutorial-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px;
+    border-radius: var(--radius);
+    background: #f8f8f8;
+    border: 2px solid var(--border);
+    margin-bottom: 8px;
+    box-shadow: 2px 2px 0 #000;
+  }
+
+  .tutorial-step-icon {
+    width: 38px; height: 38px;
+    border-radius: var(--radius);
+    background: var(--accent2);
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    color: var(--text);
+  }
+  .tutorial-step-icon svg { width: 20px; height: 20px; }
+
+  .tutorial-step-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .tutorial-step-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+  .tutorial-example {
+    margin-top: 6px;
+    font-size: 13px;
+    background: #f5f5f5;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 6px 12px;
+    letter-spacing: 2px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .tutorial-example .ins { background: var(--accent2); color: #000; padding: 0 3px; border-radius: 3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+
+  /* ── Emoji 反應欄 ── */
+  .reaction-bar {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--surface);
+    border-top: 2px solid var(--border);
+  }
+
+  /* 單個 emoji 展開列（預設隱藏）*/
+  .reaction-singles {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 12px 4px;
+    width: 100%;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height .28s ease, opacity .22s ease, padding .28s ease;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .reaction-singles.open {
+    max-height: 120px;
+    opacity: 1;
+    padding: 10px 12px 4px;
+  }
+
+  /* 主要一列：combo + 展開按鈕 */
+  .reaction-main {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 7px;
+    padding: 10px 12px 14px;
+    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .reaction-main::-webkit-scrollbar { display: none; }
+
+  .reaction-btn {
+    font-size: 20px;
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 50%;
+    width: 42px;
+    height: 42px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform .1s, box-shadow .1s, background .15s;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .reaction-btn.combo {
+    border-radius: 20px;
+    width: auto;
+    height: auto;
+    padding: 8px 13px;
+    font-size: 18px;
+    white-space: nowrap;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .reaction-expand {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: transparent;
+    border: 2px dashed var(--border);
+    color: var(--muted);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: transform .15s, border-color .2s, color .2s, background .15s;
+    -webkit-tap-highlight-color: transparent;
+    line-height: 1;
+  }
+  .reaction-expand:hover  { border-color: var(--border); color: var(--text); background: var(--accent2); transform: scale(1.1); }
+  .reaction-expand:active { transform: scale(0.88); }
+  .reaction-expand.open   { border-style: solid; border-color: var(--border); background: var(--pink); color: var(--text); transform: rotate(45deg); }
+
+  .reaction-btn:hover  {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 #000;
+    background: var(--accent2);
+  }
+  .reaction-btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 #000; }
+  .reaction-btn.sent   { animation: reactionPop .22s ease; }
+
+  @keyframes reactionPop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
+
+  /* 浮起 emoji 舞台 */
+  #reaction-stage {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 800;
+    overflow: hidden;
+  }
+
+  .floating-emoji {
+    position: absolute;
+    bottom: 80px;
+    font-size: 38px;
+    pointer-events: none;
+    user-select: none;
+    line-height: 1;
+    animation: floatUp 2.8s ease-out forwards;
+  }
+
+  @keyframes floatUp {
+    0%   { opacity: 0;   transform: translateY(0)     scale(0.5); }
+    12%  { opacity: 1;   transform: translateY(-50px)  scale(1.25); }
+    85%  { opacity: 0.8; }
+    100% { opacity: 0;   transform: translateY(-380px) scale(0.85); }
+  }
+
+  /* ══════════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════════ */
+
+  /* ── 桌機 / iPad：寬度限制置中，防止全幅撐開 ── */
+  @media (min-width: 540px) {
+    body { display: flex; justify-content: center; }
+    .screen { max-width: 480px; flex-shrink: 0; }
+    .toast-container { max-width: 440px; }
+    /* Tutorial modal 也限寬 */
+    .tutorial-modal { max-width: 480px; margin: 0 auto; }
+  }
+
+  /* ── 短螢幕（iPhone SE、舊 Android、橫向手機）── */
+  /* 高度 < 680px：knock action card 縮小 */
+  @media (max-height: 680px) {
+    .btn-knock        { width: 72px; height: 72px; font-size: 36px; }
+    .knock-progress   { margin-bottom: 10px; }
+    .knock-votes-label{ margin-bottom: 8px; }
+    .action-card      { padding: 12px 14px; }
+    .game-header      { padding: 10px 16px; }
+    .turn-bar         { padding: 4px 14px 6px; }
+    .status-msg       { padding: 16px; }
+    .sentence-text    { font-size: 28px; letter-spacing: 2px; }
+  }
+
+  /* 高度 < 500px（橫向極短）：進一步壓縮 */
+  @media (max-height: 500px) {
+    .join-logo        { width: 70px; height: 70px; }
+    .join-logo img    { width: 70px; height: 70px; }
+    .join-title       { font-size: 22px; margin-bottom: 12px; }
+    .btn-knock        { width: 56px; height: 56px; font-size: 26px; }
+    .sentence-text    { font-size: 22px; letter-spacing: 1px; }
+    .action-card      { padding: 8px 12px; }
+    .reaction-main    { padding: 6px 12px; }
+  }
+
+  /* ── 窄螢幕（320px，舊 iPhone SE 1st gen）── */
+  @media (max-width: 360px) {
+    .join-card        { padding: 20px 16px; }
+    .btn              { font-size: 15px; padding: 13px; }
+    .mode-card        { padding: 14px 6px 12px; }
+    .sentence-text    { font-size: 28px; letter-spacing: 2px; }
+    .action-card      { padding: 14px; }
+  }
+
+  /* ── iOS Safe Area：practice footer & gameover ── */
+  .practice-footer {
+    padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));
+  }
+  #gameover-screen {
+    padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
+  }
+</style>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#84D2DD">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="接字遊戲">
+<link rel="apple-touch-icon" href="/icon.jpg">
+</head>
+<body>
+
+<!-- Toast -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- 浮起 emoji 舞台 -->
+<div id="reaction-stage"></div>
+
+<!-- 閒置踢除提示 -->
+<div class="idle-overlay hidden" id="idle-overlay">
+  <div style="font-size:52px">💤</div>
+  <h2>閒置太久，已被移出房間</h2>
+  <p>重新整理頁面即可再次加入遊戲</p>
+  <button class="btn btn-primary" style="max-width:220px" onclick="location.reload()">重新整理</button>
+</div>
+
+<!-- 倒數覆蓋 -->
+<div class="countdown-overlay hidden" id="countdown-overlay">
+  <div class="countdown-number" id="countdown-number">3</div>
+  <div class="countdown-label">遊戲即將開始…</div>
+</div>
+
+<!-- 教學 Modal -->
+<div class="tutorial-overlay hidden" id="tutorial-overlay">
+  <div class="tutorial-modal">
+    <div class="tutorial-top">
+      <div class="tutorial-title">怎麼玩</div>
+      <button class="tutorial-close" onclick="closeTutorial()"><i data-lucide="x"></i></button>
+    </div>
+
+    <div class="tutorial-step">
+      <div class="tutorial-step-icon"><i data-lucide="type"></i></div>
+      <div>
+        <div class="tutorial-step-title">加一個字</div>
+        <div class="tutorial-step-desc">每輪輪到你時，在現有句子中任意位置插入一個字，讓句子繼續延伸。</div>
+        <div class="tutorial-example" style="letter-spacing:1px;line-height:2">西瓜 → <span class="ins">大</span>西瓜 → <span class="ins">吃</span>大西瓜 → <span class="ins">我</span>吃大西瓜</div>
+      </div>
+    </div>
+
+    <div class="tutorial-step">
+      <div class="tutorial-step-icon"><i data-lucide="map-pin"></i></div>
+      <div>
+        <div class="tutorial-step-title">選擇插入位置</div>
+        <div class="tutorial-step-desc">點選句子中的 <strong style="color:var(--accent2)">＋</strong> 號決定插在哪裡，頭、中、尾都可以！</div>
+      </div>
+    </div>
+
+    <div class="tutorial-step">
+      <div class="tutorial-step-icon"><i data-lucide="hammer"></i></div>
+      <div>
+        <div class="tutorial-step-title">敲頭投票</div>
+        <div class="tutorial-step-desc">覺得對方加的字讓句子不成立？在限定秒數內投票敲頭！票數達到門檻，他就直接出局。</div>
+      </div>
+    </div>
+
+    <div class="tutorial-step">
+      <div class="tutorial-step-icon"><i data-lucide="timer"></i></div>
+      <div>
+        <div class="tutorial-step-title">時間限制</div>
+        <div class="tutorial-step-desc">每人只有 <strong style="color:var(--warn)">15 秒</strong>思考。時間到沒作答，同樣被淘汰！</div>
+      </div>
+    </div>
+
+    <div class="tutorial-step">
+      <div class="tutorial-step-icon"><i data-lucide="trophy"></i></div>
+      <div>
+        <div class="tutorial-step-title">最後存活者獲勝</div>
+        <div class="tutorial-step-desc">所有對手陸續出局，最後活下來的人就是贏家！</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" style="margin-top:8px" onclick="closeTutorial()">
+      <i data-lucide="check"></i> 明白了，開始玩！
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ JOIN SCREEN ══════════════ -->
+<div class="screen active" id="join-screen">
+  <div class="join-logo"><img src="/logo.jpg" alt="韭點開始"></div>
+  <div class="join-title">韭點開始接字遊戲</div>
+  <div class="join-card">
+    <div class="field">
+      <label>你的名字</label>
+      <input type="text" id="input-name" placeholder="輸入暱稱（最多5字）" maxlength="5" autocomplete="off">
+    </div>
+    <div class="mode-cards">
+      <div class="mode-card active" id="mode-random" onclick="selectMode('random')">
+        <div class="mode-icon"><i data-lucide="shuffle"></i></div>
+        <div class="mode-title">隨機配對</div>
+        <div class="mode-desc">跟陌生人一起玩</div>
+      </div>
+      <div class="mode-card" id="mode-private" onclick="selectMode('private')">
+        <div class="mode-icon"><i data-lucide="lock"></i></div>
+        <div class="mode-title">私人房間</div>
+        <div class="mode-desc">跟朋友一起玩</div>
+      </div>
+    </div>
+    <div class="field hidden-el" id="room-field">
+      <label>房間代碼</label>
+      <input type="text" id="input-room" maxlength="8" autocomplete="off"
+             style="text-transform:uppercase; letter-spacing:2px;">
+      <button class="btn-copy-link" id="btn-copy-link" onclick="copyRoomLink()">
+        <i data-lucide="link"></i> 複製邀請連結，傳給朋友直接加入
+      </button>
+    </div>
+    <button class="btn btn-primary" id="btn-join">進入遊戲</button>
+    <div class="join-secondary-btns">
+      <button class="btn-ghost" onclick="openTutorial()"><i data-lucide="book-open"></i> 遊戲說明</button>
+      <button class="btn-ghost" onclick="startPractice()"><i data-lucide="flask-conical"></i> 試玩</button>
+    </div>
+    <div class="social-links">
+      <a href="https://www.instagram.com/p/DVIv0ASCbwF/" target="_blank" rel="noopener" class="social-follow">
+        每天韭點來看我們在幹嘛 🌱 →
+      </a>
+      <a href="https://www.instagram.com/from_nine_on/" target="_blank" rel="noopener" class="social-link" title="Instagram">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.084zm.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/>
+        </svg>
+      </a>
+      <a href="https://www.threads.com/@from_nine_on?xmt=AQF09P0beerpQLGcI-6TkVZeil0gvUJ_WBM7ffn3AzLvFPs" target="_blank" rel="noopener" class="social-link" title="Threads">
+        <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.359-.89h-.029c-.844 0-1.992.232-2.721 1.32L7.734 7.847c.98-1.454 2.568-2.256 4.478-2.256h.044c3.194.02 5.097 1.975 5.287 5.388.108.046.216.094.321.142 1.49.7 2.58 1.761 3.154 3.07.797 1.82.871 4.79-1.548 7.158-1.85 1.81-4.094 2.628-7.277 2.65Zm1.003-11.69c-.242 0-.487.007-.739.021-1.836.103-2.98.946-2.916 2.143.067 1.256 1.452 1.839 2.784 1.767 1.224-.065 2.818-.543 3.086-3.71a10.5 10.5 0 0 0-2.215-.221z"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ GAME SCREEN ══════════════ -->
+<div class="screen" id="game-screen">
+  <div class="game-header">
+    <h1>韭點開始</h1>
+    <div class="room-badge" id="room-badge" title="點擊複製房間代碼">房間 ———</div>
+  </div>
+
+  <div class="game-body" id="game-body">
+
+    <!-- 玩家清單 -->
+    <div class="player-list-panel">
+      <div class="panel-header" id="panel-toggle">
+        <span class="panel-title">玩家順序</span>
+        <span class="panel-toggle open" id="panel-toggle-icon">▲</span>
+      </div>
+      <div class="player-list" id="player-list"></div>
+    </div>
+
+    <!-- 當前句子 -->
+    <div class="sentence-card">
+      <div class="sentence-label">當前句子</div>
+      <div class="sentence-text" id="sentence-display">—</div>
+    </div>
+
+  </div><!-- game-body end -->
+
+  <!-- 回合狀態列（固定，不隨內容捲動）-->
+  <div class="turn-bar" id="turn-bar">
+    <div class="turn-info" id="turn-info">等待玩家加入…</div>
+    <div class="timer-wrap hidden-el" id="timer-wrap">
+      <div class="timer-circle">
+        <svg class="timer-svg" viewBox="0 0 40 40">
+          <circle class="timer-track" cx="20" cy="20" r="18"/>
+          <circle class="timer-fill" id="timer-fill" cx="20" cy="20" r="18"/>
+        </svg>
+        <div class="timer-number" id="timer-number">15</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 行動區（固定在底部，不隨內容捲動）-->
+  <div class="game-action">
+    <div class="action-card" id="action-area">
+      <div class="status-msg" id="waiting-msg">
+        <span class="emoji"><i data-lucide="hourglass"></i></span>
+        等待其他玩家…<br>
+        <strong>需要至少 2 人才能開始</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Emoji 反應欄 -->
+  <div class="reaction-bar" id="reaction-bar">
+    <!-- 單個 emoji（預設收合）-->
+    <div class="reaction-singles" id="reaction-singles">
+      <button class="reaction-btn" onclick="sendReaction('😡')">😡</button>
+      <button class="reaction-btn" onclick="sendReaction('😤')">😤</button>
+      <button class="reaction-btn" onclick="sendReaction('😳')">😳</button>
+      <button class="reaction-btn" onclick="sendReaction('😱')">😱</button>
+      <button class="reaction-btn" onclick="sendReaction('🤢')">🤢</button>
+      <button class="reaction-btn" onclick="sendReaction('😈')">😈</button>
+      <button class="reaction-btn" onclick="sendReaction('💩')">💩</button>
+      <button class="reaction-btn" onclick="sendReaction('💋')">💋</button>
+      <button class="reaction-btn" onclick="sendReaction('👀')">👀</button>
+      <button class="reaction-btn" onclick="sendReaction('🤷‍♀️')">🤷‍♀️</button>
+    </div>
+    <!-- 主列：combo emoji + 展開按鈕 -->
+    <div class="reaction-main">
+      <button class="reaction-btn combo" onclick="sendReaction('😂🤙')">😂🤙</button>
+      <button class="reaction-btn combo" onclick="sendReaction('🥵👊')">🥵👊</button>
+      <button class="reaction-btn combo" onclick="sendReaction('🤡👏')">🤡👏</button>
+      <button class="reaction-btn combo" onclick="sendReaction('🤓🫵')">🤓🫵</button>
+      <button class="reaction-btn combo" onclick="sendReaction('😘🫰')">😘🫰</button>
+      <button class="reaction-btn combo" onclick="sendReaction('😝🖖')">😝🖖</button>
+      <button class="reaction-expand" id="reaction-expand-btn" onclick="toggleSingles()">+</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ GAME OVER SCREEN ══════════════ -->
+<div class="screen" id="gameover-screen">
+  <div class="gameover-emoji" id="gameover-emoji"><i data-lucide="trophy"></i></div>
+  <div class="gameover-title" id="gameover-title">遊戲結束</div>
+  <div class="gameover-winner" id="gameover-winner"></div>
+
+  <!-- 最終句子 -->
+  <div class="gameover-sentence" id="gameover-sentence" style="display:none">
+    <div class="gameover-sentence-label">本局最終句子</div>
+    <div class="gameover-sentence-text" id="gameover-sentence-text">—</div>
+  </div>
+
+  <!-- 排名 -->
+  <div class="gameover-ranks" id="gameover-ranks"></div>
+
+  <!-- 按鈕 -->
+  <div class="gameover-actions">
+    <button class="btn btn-share" onclick="shareResult()">
+      <i data-lucide="share-2"></i> 一鍵分享結果
+    </button>
+    <button class="btn btn-primary" id="btn-replay" style="display:none" onclick="requestStart()">
+      <i data-lucide="refresh-cw"></i> 再玩一局
+    </button>
+  </div>
+
+  <div class="gameover-countdown" id="gameover-countdown"></div>
+</div>
+
+<!-- ══════════════ PRACTICE SCREEN ══════════════ -->
+<div class="screen" id="practice-screen">
+  <div class="practice-header">
+    <span class="practice-header-title">試玩練習</span>
+    <button class="practice-exit-btn" onclick="exitPractice()"><i data-lucide="x"></i> 離開</button>
+  </div>
+  <div class="practice-body" id="practice-body"></div>
+  <div class="practice-footer" id="practice-footer"></div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+// ─────────────────────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────────────────────
+const socket = io();
+
+// HTML 跳脫（防 XSS）
+function esc(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// Lucide icon helper
+function ico(name, size = 18) {
+  return `<i data-lucide="${name}" style="width:${size}px;height:${size}px;display:inline-block;vertical-align:middle;flex-shrink:0"></i>`;
+}
+
+// 初始化所有靜態 Lucide icons
+function refreshIcons() { lucide.createIcons(); }
+
+let myId            = null;
+let myRoomId        = null;
+let myPending       = false;
+let isRandomRoom    = false;
+let gameState       = {};  // latest state snapshot
+let timerInterval   = null;
+let timerEndTime    = null;
+let countdownTimer  = null;
+let lobbyInterval   = null;  // 隨機房間大廳倒數
+let lobbyEndTime    = null;
+let hasVotedKnock   = false;
+let selectedPosition = 0;  // 目前選擇的插入位置
+let isSpectating    = false; // 被淘汰後選擇觀戰
+let sentenceHighlight = null; // { before, added, after, full }
+let highlightTimer    = null;
+let eliminationOrder  = []; // [{ name, reason }] first eliminated = index 0
+let finalSentence     = '';
+let gameOverWinnerName = '';
+let pendingRoomReset  = false; // roomReset 已收到但玩家還在結算頁
+let moveHistory       = []; // [{ playerName, char, pos }] accepted moves
+let pendingMove       = null;
+let startWordLength   = 0;
+let sentenceOwners    = []; // parallel to finalSentence chars: who added each char (null = starting word)
+
+function diffSentence(oldS, newS) {
+  const o = [...(oldS || '')];
+  const n = [...(newS || '')];
+  let i = 0;
+  while (i < o.length && i < n.length && o[i] === n[i]) i++;
+  let j = 0;
+  while (j < o.length - i && j < n.length - i && o[o.length-1-j] === n[n.length-1-j]) j++;
+  return {
+    before: n.slice(0, i).join(''),
+    added:  n.slice(i, n.length - (j || 0)).join(''),
+    after:  j > 0 ? n.slice(n.length - j).join('') : '',
+    full:   newS,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────
+// Screens
+// ─────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Toast
+// ─────────────────────────────────────────────────────────────
+function toast(msg, type = 'info', duration = 2800) {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = msg;
+  const container = document.getElementById('toast-container');
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.transition = 'opacity .4s';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 400);
+  }, duration);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Timer
+// ─────────────────────────────────────────────────────────────
+// endTime：伺服器給的絕對時間戳；totalSeconds：這輪總秒數（用來畫進度圓弧）
+function startTimerUI(endTime, totalSeconds) {
+  stopTimerUI();
+  timerEndTime = endTime;
+  document.getElementById('timer-wrap').classList.remove('hidden-el');
+  const initLeft = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+  updateTimerUI(initLeft, totalSeconds);
+
+  timerInterval = setInterval(() => {
+    const left = Math.max(0, Math.ceil((timerEndTime - Date.now()) / 1000));
+    updateTimerUI(left, totalSeconds);
+    if (left <= 0) stopTimerUI();
+  }, 200);
+}
+
+function stopTimerUI() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+  document.getElementById('timer-wrap').classList.add('hidden-el');
+}
+
+function updateTimerUI(left, total) {
+  document.getElementById('timer-number').textContent = left;
+  const circumference = 113; // 2 * pi * 18
+  const pct = total > 0 ? left / total : 0;
+  const fill = document.getElementById('timer-fill');
+  fill.style.strokeDashoffset = circumference * (1 - pct);
+  fill.classList.toggle('warn',   left <= 8 && left > 4);
+  fill.classList.toggle('danger', left <= 4);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Countdown overlay
+// ─────────────────────────────────────────────────────────────
+function showCountdown(sec, onDone) {
+  const overlay = document.getElementById('countdown-overlay');
+  const num     = document.getElementById('countdown-number');
+  overlay.classList.remove('hidden');
+  let n = sec;
+  num.textContent = n;
+  num.style.animation = 'none';
+  void num.offsetWidth;
+  num.style.animation = 'zoomIn .6s ease';
+
+  countdownTimer = setInterval(() => {
+    n--;
+    if (n <= 0) {
+      clearInterval(countdownTimer);
+      overlay.classList.add('hidden');
+      if (onDone) onDone();
+    } else {
+      num.textContent = n;
+      num.style.animation = 'none';
+      void num.offsetWidth;
+      num.style.animation = 'zoomIn .6s ease';
+    }
+  }, 1000);
+}
+
+// ─────────────────────────────────────────────────────────────
+// Render player list
+// ─────────────────────────────────────────────────────────────
+function renderPlayers(players, currentPlayerId) {
+  const list   = document.getElementById('player-list');
+  const active = players.filter(p => p.status === 'active');
+
+  list.innerHTML = players.map((p) => {
+    const isCurrent = p.id === currentPlayerId;
+    const isMe      = p.id === myId;
+    const order     = p.status === 'active' ? active.indexOf(p) + 1 : null;
+    const initial   = esc(p.name[0].toUpperCase());
+    const label     = esc(p.name) + (isMe ? ' ✦' : '');
+
+    return `<div class="player-chip ${p.status} ${isCurrent ? 'current' : ''}">
+      <div class="player-avatar">${initial}</div>
+      ${order !== null ? `<div class="chip-order">${order}</div>` : ''}
+      <div class="player-chip-name" title="${esc(p.name)}">${label}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Render action area
+// ─────────────────────────────────────────────────────────────
+function renderActionArea(state) {
+  const area    = document.getElementById('action-area');
+  const isMyTurn = state.currentPlayerId === myId;
+  const gs      = state.gameState;
+
+  // 自己被淘汰
+  const me = state.players.find(p => p.id === myId);
+  if (me?.status === 'eliminated') {
+    if (isSpectating) {
+      area.innerHTML = `<div class="status-msg">
+        <span class="emoji">${ico('eye', 42)}</span>
+        <strong>觀戰中</strong><br>
+        <span style="font-size:14px;color:var(--muted)">繼續看其他玩家對決！</span>
+      </div>`;
+    } else {
+      area.innerHTML = `<div class="status-msg">
+        <span class="emoji">${ico('skull', 42)}</span>
+        <strong style="font-size:20px">你已被淘汰！</strong><br>
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:18px">
+          <button class="btn" style="background:var(--card);border:1px solid var(--border);padding:13px 22px;font-size:16px" onclick="startSpectating()">${ico('eye')} 觀戰</button>
+          <button class="btn" style="background:var(--danger);padding:13px 22px;font-size:16px" onclick="leaveRoom()">${ico('log-out')} 離開房間</button>
+        </div>
+      </div>`;
+    }
+    return;
+  }
+
+  // 自己是 pending
+  if (me?.status === 'pending') {
+    area.innerHTML = `<div class="status-msg">
+      <span class="emoji">${ico('clock', 42)}</span>
+      你將在<strong>下一局</strong>加入遊戲<br>
+      先觀摩一下吧！
+    </div>`;
+    return;
+  }
+
+  // 等待
+  if (gs === 'waiting') {
+    const cnt = state.players.filter(p => p.status === 'active').length;
+    const canStart = cnt >= 2;
+
+    if (isRandomRoom) {
+      // 隨機房間：本機計算剩餘秒數
+      const tl = lobbyEndTime ? Math.max(0, Math.ceil((lobbyEndTime - Date.now()) / 1000)) : null;
+      const waiting = tl !== null;
+      area.innerHTML = `
+        <div class="status-msg" style="margin-bottom:16px">
+          <span class="emoji">${ico('shuffle', 42)}</span>
+          <div style="font-size:17px;margin-bottom:10px">已有 <strong style="font-size:22px;color:var(--accent2)">${cnt}</strong> 人加入</div>
+          ${waiting
+            ? `<div style="font-size:14px;color:var(--muted);margin-bottom:6px">等待更多玩家…</div>
+               <div style="font-size:48px;font-weight:900;color:var(--accent2);line-height:1">${tl}</div>
+               <div style="font-size:13px;color:var(--muted);margin-top:4px">秒後自動開始</div>`
+            : `<div style="font-size:15px;color:var(--warn);display:flex;align-items:center;gap:6px;justify-content:center">${ico('triangle-alert', 16)} 至少需要 2 人才能開始遊戲</div>`
+          }
+        </div>
+        ${canStart ? `<button class="btn btn-primary" onclick="requestStart()" style="font-size:17px;padding:16px">${ico('zap')} 立即開始</button>` : ''}`;
+    } else {
+      // 私人房間：手動開始
+      area.innerHTML = `<div class="status-msg" style="margin-bottom:${canStart ? '16px' : '0'}">
+        <span class="emoji">${canStart ? ico('gamepad-2', 42) : ico('hourglass', 42)}</span>
+        目前 <strong>${cnt}</strong> 人${canStart ? '，可以開始了！' : `，需要至少 <strong>2</strong> 人才能開始<br>把房間代碼分享給朋友！`}
+      </div>
+      ${canStart ? `<button class="btn btn-primary" onclick="requestStart()" style="font-size:18px;padding:18px">${ico('rocket')} 開始遊戲！</button>` : ''}`;
+    }
+    return;
+  }
+
+  if (gs === 'countdown') {
+    area.innerHTML = `<div class="status-msg">
+      <span class="emoji">${ico('sparkles', 42)}</span>
+      遊戲即將開始！
+    </div>`;
+    return;
+  }
+
+  // 敲頭窗口：所有人都看得到投票介面（答題者按鈕 disabled）
+  if (gs === 'knock-window') {
+    const pct = state.knockRequired > 0
+      ? Math.min(100, (state.knockVotes / state.knockRequired) * 100)
+      : 0;
+    const canVote   = !isMyTurn && !hasVotedKnock;
+    const btnClass  = hasVotedKnock ? 'voted' : '';
+    const btnDisabled = isMyTurn || hasVotedKnock;
+    const hint = isMyTurn
+      ? `${ico('clock', 14)} 等待其他人評判…`
+      : (hasVotedKnock ? `${ico('check', 14)} 已投票` : '覺得句子不成立？敲他！');
+
+    area.innerHTML = `<div class="knock-section">
+      <div class="knock-votes-label">
+        ${ico('hammer', 16)} 敲頭投票中 &nbsp;—&nbsp; 已投 <strong>${state.knockVotes}</strong> / 需要 ${state.knockRequired} 票
+      </div>
+      <div class="knock-progress" style="margin-bottom:20px">
+        <div class="knock-progress-fill" id="knock-pct-fill" style="width:${pct}%"></div>
+      </div>
+      <button class="btn-knock ${btnClass}"
+              id="btn-knock" ${btnDisabled ? 'disabled' : ''}
+              onclick="sendKnock()">${ico('hammer', 40)}</button>
+      <div style="margin-top:14px;font-size:14px;color:var(--muted);display:flex;align-items:center;gap:6px;justify-content:center">${hint}</div>
+    </div>`;
+    return;
+  }
+
+  // 遊戲進行中
+  if (gs === 'playing') {
+    if (isMyTurn) {
+      const cur = state.currentSentence;
+      const chars = [...cur]; // 正確處理多字節字元
+
+      // 建立 insert-slot 與 char-cell HTML
+      let pickerHTML = `<div class="insert-slot selected" data-pos="0"><span class="slot-icon">+</span></div>`;
+      chars.forEach((ch, i) => {
+        pickerHTML += `<div class="char-cell">${esc(ch)}</div>`;
+        pickerHTML += `<div class="insert-slot" data-pos="${i + 1}"><span class="slot-icon">+</span></div>`;
+      });
+
+      area.innerHTML = `
+        <div class="action-title">輪到你了！加一個字</div>
+        <div class="picker-hint">點選 ＋ 決定插在哪裡，然後在下方輸入</div>
+        <div class="sentence-picker" id="sentence-picker">${pickerHTML}</div>
+        <div class="char-input-row">
+          <span class="char-input-label">插入一個字：</span>
+          <input type="text" id="input-char" placeholder="字" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+          <div class="preview-inline" id="preview-inline">
+            <span class="old">${esc(cur)}</span>
+          </div>
+        </div>
+        <button class="btn btn-success" id="btn-submit" onclick="submitAnswer()">${ico('check')} 送出</button>`;
+
+      setTimeout(() => {
+        // 點選插入位置
+        document.querySelectorAll('.insert-slot').forEach(slot => {
+          slot.addEventListener('click', () => {
+            document.querySelectorAll('.insert-slot').forEach(s => s.classList.remove('selected'));
+            slot.classList.add('selected');
+            selectedPosition = parseInt(slot.dataset.pos, 10);
+            updateCharPreview();
+            document.getElementById('input-char')?.focus();
+          });
+        });
+
+        // 輸入字元時更新預覽（正確處理注音/倉頡等輸入法）
+        const inp = document.getElementById('input-char');
+        let isComposing = false;
+
+        inp?.addEventListener('compositionstart', () => { isComposing = true; });
+
+        inp?.addEventListener('compositionend', () => {
+          isComposing = false;
+          // 組字結束後，只保留最後一個字
+          const cs = [...(inp.value || '')];
+          if (cs.length > 0) inp.value = cs[cs.length - 1];
+          updateCharPreview();
+        });
+
+        inp?.addEventListener('input', () => {
+          if (isComposing) return; // 組字中不截斷，讓輸入法正常運作
+          const cs = [...(inp.value || '')];
+          if (cs.length > 1) inp.value = cs[cs.length - 1];
+          updateCharPreview();
+        });
+
+        function updateCharPreview() {
+          const ch  = [...(document.getElementById('input-char')?.value || '')].slice(-1)[0] || '';
+          const pos = selectedPosition;
+          const before = chars.slice(0, pos).join('');
+          const after  = chars.slice(pos).join('');
+          const pv = document.getElementById('preview-inline');
+          if (pv) pv.innerHTML = ch
+            ? `<span class="old">${esc(before)}</span><span class="ins">${esc(ch)}</span><span class="old">${esc(after)}</span>`
+            : `<span class="old">${esc(cur)}</span>`;
+        }
+
+        inp?.focus();
+      }, 50);
+    } else {
+      // 別人的回合，顯示等待
+      const current = state.players.find(p => p.id === state.currentPlayerId);
+      area.innerHTML = `<div class="status-msg">
+        <span class="emoji">${ico('pencil-line', 42)}</span>
+        <strong>${esc(current?.name || '?')}</strong> 正在思考中…<br>
+        <span style="font-size:13px">等一下還有你的敲頭機會！</span>
+      </div>`;
+    }
+    return;
+  }
+
+  area.innerHTML = '';
+}
+
+// ─────────────────────────────────────────────────────────────
+// Submit answer
+// ─────────────────────────────────────────────────────────────
+function submitAnswer() {
+  const raw = [...(document.getElementById('input-char')?.value || '')];
+  const char = raw[raw.length - 1] || '';
+  if (!char) { toast('請先輸入一個字！', 'warn'); return; }
+  const btn = document.getElementById('btn-submit');
+  if (btn) btn.disabled = true;
+  socket.emit('submit', { position: selectedPosition, character: char });
+}
+
+// ─────────────────────────────────────────────────────────────
+// Knock
+// ─────────────────────────────────────────────────────────────
+function sendKnock() {
+  if (hasVotedKnock) return;
+  hasVotedKnock = true;
+  socket.emit('knock');
+  const btn = document.getElementById('btn-knock');
+  if (btn) { btn.classList.add('voted'); btn.disabled = true; }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Full render
+// ─────────────────────────────────────────────────────────────
+function render(state) {
+  gameState = state;
+  renderPlayers(state.players, state.currentPlayerId);
+  renderActionArea(state);
+
+  // 等待中：隱藏句子卡與回合列
+  const isWaiting = state.gameState === 'waiting';
+  document.querySelector('.sentence-card').classList.toggle('hidden-el', isWaiting);
+  document.getElementById('turn-bar').classList.toggle('hidden-el', isWaiting);
+
+  // 句子（knock-window 期間 state.currentSentence 仍是舊句子，改用 sentenceHighlight.full 顯示新句子）
+  const sentenceEl = document.getElementById('sentence-display');
+  const displaySentence = (sentenceHighlight && state.gameState === 'knock-window')
+    ? sentenceHighlight.full
+    : (state.currentSentence || '');
+  const clen = [...displaySentence].length;
+  sentenceEl.style.fontSize = clen <= 6 ? '34px' : clen <= 12 ? '28px' : clen <= 20 ? '22px' : clen <= 30 ? '18px' : '15px';
+  sentenceEl.style.letterSpacing = clen <= 6 ? '4px' : clen <= 15 ? '2px' : '1px';
+  if (sentenceHighlight && sentenceHighlight.added) {
+    sentenceEl.innerHTML = esc(sentenceHighlight.before) +
+      `<span class="sentence-new">${esc(sentenceHighlight.added)}</span>` +
+      esc(sentenceHighlight.after);
+  } else {
+    sentenceEl.textContent = displaySentence;
+  }
+
+  // 回合資訊
+  const turnInfo = document.getElementById('turn-info');
+  const current  = state.players.find(p => p.id === state.currentPlayerId);
+
+  if (state.gameState === 'waiting') {
+    stopTimerUI();
+  } else if (state.gameState === 'countdown') {
+    turnInfo.textContent = '遊戲倒計時中…';
+    stopTimerUI();
+  } else if (state.gameState === 'playing' || state.gameState === 'knock-window') {
+    const isKnock = state.gameState === 'knock-window';
+    turnInfo.innerHTML = isKnock
+      ? `<span class="turn-name">敲頭投票中</span>`
+      : `<span class="turn-name">${esc(current?.name || '?')}</span> 的回合`;
+
+    if (state.turnEndTime && !timerInterval) {
+      const total = isKnock ? 5 : 15;
+      startTimerUI(state.turnEndTime, total);
+    }
+  }
+  refreshIcons();
+}
+
+// ─────────────────────────────────────────────────────────────
+// Socket Events
+// ─────────────────────────────────────────────────────────────
+socket.on('joined', ({ playerId, roomId, isPending, isRandom }) => {
+  myId         = playerId;
+  myRoomId     = roomId;
+  myPending    = isPending;
+  isRandomRoom = !!isRandom;
+  isSpectating = false;
+
+  const badge = document.getElementById('room-badge');
+  if (isRandom) {
+    badge.innerHTML = `${ico('shuffle', 13)} 隨機配對`;
+    badge.title = '';
+    badge.style.cursor = 'default';
+  } else {
+    badge.innerHTML = `${ico('hash', 13)} ${roomId}`;
+    badge.title = '點擊複製房間代碼';
+    badge.style.cursor = 'pointer';
+  }
+  document.title = `韭點開始 | ${isRandom ? '隨機' : roomId}`;
+  showScreen('game-screen');
+
+  if (isPending) toast('遊戲進行中，你將從下一局開始！', 'info', 4000);
+});
+
+socket.on('state', (state) => {
+  // 更新 lobby 倒數端點
+  if (state.lobbyEndTime) {
+    lobbyEndTime = state.lobbyEndTime;
+    if (!lobbyInterval) {
+      lobbyInterval = setInterval(() => {
+        if (gameState.gameState === 'waiting' && isRandomRoom) render(gameState);
+        else { clearInterval(lobbyInterval); lobbyInterval = null; }
+      }, 1000);
+    }
+  } else {
+    lobbyEndTime = null;
+    clearInterval(lobbyInterval);
+    lobbyInterval = null;
+  }
+  render(state);
+});
+
+socket.on('startCountdown', ({ seconds }) => {
+  clearInterval(countdownTimer);
+  if (pendingRoomReset) {
+    pendingRoomReset = false;
+    clearGameData();
+    showScreen('game-screen');
+    document.getElementById('btn-replay').style.display = 'none';
+  }
+  showCountdown(seconds);
+});
+
+socket.on('gameStarted', ({ startWord }) => {
+  stopTimerUI();
+  clearInterval(lobbyInterval); lobbyInterval = null; lobbyEndTime = null;
+  startWordLength = [...(startWord || '')].length;
+  moveHistory = []; pendingMove = null;
+  toast(`遊戲開始！起始詞：${startWord}`, 'success', 3000);
+  document.getElementById('countdown-overlay').classList.add('hidden');
+});
+
+socket.on('turnStart', ({ currentPlayerId, currentPlayerName, totalTime, turnEndTime }) => {
+  hasVotedKnock    = false;
+  selectedPosition = 0;
+  sentenceHighlight = null; clearTimeout(highlightTimer);
+  stopTimerUI();
+  startTimerUI(turnEndTime, totalTime);
+  if (currentPlayerId === myId) {
+    toast('輪到你了！快點回答！', 'warn', 2000);
+  }
+});
+
+socket.on('answerSubmitted', ({ playerName, newSentence, knockWindow, knockRequired, turnEndTime }) => {
+  const diff = diffSentence(gameState?.currentSentence, newSentence);
+  sentenceHighlight = diff;
+  pendingMove = { playerName, char: diff.added, pos: [...diff.before].length };
+  stopTimerUI();
+  startTimerUI(turnEndTime, knockWindow);
+  hasVotedKnock = false;
+  toast(`${esc(playerName)} 加了「<span style="color:var(--warn);font-weight:700">${esc(diff.added)}</span>」`, 'info', 2500);
+});
+
+socket.on('knockVote', ({ votes, required, voterName }) => {
+  toast(`${ico('hammer',14)} ${esc(voterName)} 敲頭了！（${votes}/${required}票）`, 'warn', 1500);
+  // 更新敲頭進度
+  const pct = required > 0 ? Math.min(100, (votes / required) * 100) : 0;
+  const fill = document.querySelector('.knock-progress-fill');
+  const label = document.querySelector('.knock-votes-label');
+  if (fill)  fill.style.width = `${pct}%`;
+  if (label) label.innerHTML = `已投 <strong>${votes}</strong> / ${required} 票`;
+});
+
+socket.on('knocked', ({ playerId, playerName }) => {
+  stopTimerUI();
+  sentenceHighlight = null; clearTimeout(highlightTimer);
+  pendingMove = null;
+  const isMe = playerId === myId;
+  toast(isMe ? `${ico('flame',14)} 你被敲頭淘汰了！` : `${ico('flame',14)} ${esc(playerName)} 被敲頭淘汰！`, 'danger', 3000);
+});
+
+socket.on('accepted', ({ newSentence }) => {
+  stopTimerUI();
+  sentenceHighlight = null; clearTimeout(highlightTimer);
+  if (pendingMove) { moveHistory.push(pendingMove); pendingMove = null; }
+  toast(`${ico('circle-check',14)} 句子通過！`, 'success', 2000);
+});
+
+socket.on('eliminated', ({ playerId, playerName, reason }) => {
+  stopTimerUI();
+  eliminationOrder.push({ name: playerName, reason });
+  // 被敲頭淘汰的 toast 已由 'knocked' 事件顯示，不重複
+  if (reason !== 'knocked') {
+    const isMe = playerId === myId;
+    const msg  = reason === 'timeout' ? '超時未回答' : '被淘汰';
+    toast(isMe ? `你被淘汰了！(${msg})` : `${playerName} 被淘汰了！(${msg})`,
+          isMe ? 'danger' : 'warn', 3000);
+  }
+});
+
+socket.on('playerLeft', ({ playerName }) => {
+  toast(`${playerName} 離開了遊戲`, 'warn', 2000);
+});
+
+socket.on('gameOver', ({ winnerName }) => {
+  stopTimerUI();
+  clearInterval(countdownTimer);
+  document.getElementById('countdown-overlay').classList.add('hidden');
+
+  finalSentence = gameState.currentSentence || '';
+  gameOverWinnerName = winnerName || '';
+
+  if (winnerName) {
+    const isMe = gameState.players?.find(p => p.name === winnerName)?.id === myId;
+    document.getElementById('gameover-emoji').innerHTML  = isMe ? ico('award', 80) : ico('trophy', 80);
+    document.getElementById('gameover-title').textContent  = isMe ? '你贏了！！！' : '遊戲結束';
+    document.getElementById('gameover-winner').innerHTML = `${ico('star', 18)} ${esc(winnerName)} 獲勝！`;
+  } else {
+    document.getElementById('gameover-emoji').innerHTML  = ico('handshake', 80);
+    document.getElementById('gameover-title').textContent  = '遊戲結束';
+    document.getElementById('gameover-winner').textContent = '平局！沒有贏家';
+  }
+
+  // 最終句子
+  const sentEl = document.getElementById('gameover-sentence');
+  const sentTextEl = document.getElementById('gameover-sentence-text');
+  if (finalSentence) {
+    sentTextEl.textContent = finalSentence;
+    sentEl.style.display = '';
+  } else {
+    sentEl.style.display = 'none';
+  }
+
+  // 計算每個字的加入者
+  sentenceOwners = new Array(startWordLength).fill(null);
+  moveHistory.forEach(({ playerName, pos }) => {
+    sentenceOwners.splice(pos, 0, playerName);
+  });
+
+  // 排名：最後存活的(winnerName)排第1，其餘按淘汰逆序
+  const ranksEl = document.getElementById('gameover-ranks');
+  const reasonLabel = r => r === 'timeout' ? '超時' : r === 'knocked' ? '被敲頭' : '淘汰';
+  const rankItems = [];
+  if (winnerName) rankItems.push({ name: winnerName, reason: '存活到最後' });
+  for (let i = eliminationOrder.length - 1; i >= 0; i--) {
+    rankItems.push({ name: eliminationOrder[i].name, reason: reasonLabel(eliminationOrder[i].reason) });
+  }
+
+  const sentChars = [...finalSentence];
+  function buildSentenceHTML(playerName) {
+    if (!sentChars.length) return '';
+    const chips = sentChars.map((ch, i) => {
+      const mine = sentenceOwners[i] === playerName;
+      return `<span class="gameover-rank-char ${mine ? 'mine' : 'other'}">${esc(ch)}</span>`;
+    }).join('');
+    return `<div class="gameover-rank-sentence">${chips}</div>`;
+  }
+
+  const medals = ['🥇', '🥈', '🥉'];
+  ranksEl.innerHTML = rankItems.map((item, idx) => `
+    <div class="gameover-rank-item${idx === 0 ? ' rank-1' : ''}">
+      <div class="gameover-rank-badge">${medals[idx] || (idx + 1)}</div>
+      <div class="gameover-rank-main">
+        <div class="gameover-rank-name">${esc(item.name)}</div>
+        ${buildSentenceHTML(item.name)}
+      </div>
+      <div class="gameover-rank-reason">${esc(item.reason)}</div>
+    </div>`).join('');
+
+  refreshIcons();
+
+  // 顯示再玩按鈕（roomReset 後才真正可按，先顯示）
+  document.getElementById('btn-replay').style.display = 'block';
+  showScreen('gameover-screen');
+  refreshIcons();
+});
+
+function clearGameData() {
+  eliminationOrder   = [];
+  finalSentence      = '';
+  gameOverWinnerName = '';
+  moveHistory        = [];
+  pendingMove        = null;
+  startWordLength    = 0;
+  sentenceOwners     = [];
+}
+
+socket.on('roomReset', () => {
+  stopTimerUI();
+  hasVotedKnock = false;
+  isSpectating  = false;
+  // 若在結算頁，保留遊戲資料讓玩家還能分享；離開時才清除
+  const onGameover = document.getElementById('gameover-screen').classList.contains('active');
+  if (onGameover) {
+    pendingRoomReset = true;
+  } else {
+    clearGameData();
+    showScreen('game-screen');
+    document.getElementById('btn-replay').style.display = 'none';
+  }
+});
+
+socket.on('kicked', ({ reason }) => {
+  myId = myRoomId = null;
+  document.getElementById('idle-overlay').classList.remove('hidden');
+});
+
+socket.on('error', ({ message }) => {
+  toast(`${ico('triangle-alert',14)} ${esc(message)}`, 'danger');
+  const btn = document.getElementById('btn-submit');
+  if (btn) btn.disabled = false;
+});
+
+// 建立結果圖
+async function buildResultCanvas() {
+  // ── 1. 強制字體下載 ──
+  await new Promise(resolve => {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0.01;font:900 1px "Noto Sans TC"';
+    el.textContent = '韭點開始接字遊戲存活到最後被敲頭超時追蹤';
+    document.body.appendChild(el);
+    requestAnimationFrame(() => requestAnimationFrame(() => { document.body.removeChild(el); resolve(); }));
+  });
+  const t = '韭點開始接字遊戲存活到最後被敲頭超時追蹤';
+  await Promise.all([
+    document.fonts.load('900 60px "Noto Sans TC"', t),
+    document.fonts.load('700 36px "Noto Sans TC"', t),
+    document.fonts.load('500 26px "Noto Sans TC"', t),
+  ]).catch(() => {});
+
+  // ── 2. 載入 Logo ──
+  const logo = await new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve(img); img.onerror = () => resolve(null);
+    img.src = '/logo.jpg';
+  });
+
+  const TEAL = '#84D2DD', LIME = '#AAF952', BK = '#000', WH = '#fff', MUTED = '#777';
+
+  // ── 3. 計算排名列表 ──
+  const rankItems = [];
+  if (gameOverWinnerName) rankItems.push({ name: gameOverWinnerName, reason: '存活到最後', winner: true });
+  for (let i = eliminationOrder.length - 1; i >= 0; i--) {
+    const r = eliminationOrder[i].reason;
+    rankItems.push({ name: eliminationOrder[i].name, reason: r === 'timeout' ? '超時' : r === 'knocked' ? '被敲頭' : '淘汰', winner: false });
+  }
+  const n = Math.max(rankItems.length, 1);
+
+  // ── 4. 各區塊高度（先算後畫，才能垂直置中）──
+  const W = 1080, H = 1920;           // 9:16 IG Stories 標準尺寸
+  const CARD_X = 80, CARD_W = 920;    // 卡片左右距 80px，避免 IG 工具列遮住
+  const HDR_H  = 120;
+  const IPAD   = 40;                  // 卡片內上下留白
+
+  // 句子區
+  const sentChars = [...(finalSentence || '')];
+  const hasSent = sentChars.length > 0;
+  const SFS = sentChars.length <= 2 ? 120 : sentChars.length <= 4 ? 96
+             : sentChars.length <= 6 ? 80  : sentChars.length <= 9 ? 66 : 54;
+  const SENT_H = hasSent ? (40 + Math.ceil(SFS * 1.25) + 36) : 0;
+  // 40=label區, ceil(SFS*1.25)=大字高度, 36=分隔線區
+
+  // 排名列高（動態：人多則縮小）
+  const hasSentOwners = hasSent && sentenceOwners.length > 0;
+  const ROW_GAP = 10;
+  const maxRowH = Math.min(116, Math.floor(
+    (1920 - 360 - HDR_H - 2*IPAD - SENT_H - 200 - (n-1)*ROW_GAP) / n
+  ));
+  const ROW_H = Math.max(hasSentOwners ? 76 : 60, maxRowH);
+  const showChars = hasSentOwners && ROW_H >= 76;
+  const RANKS_H = n * ROW_H + Math.max(0, n-1) * ROW_GAP;
+
+  // Footer 區（logo + handle + CTA）
+  const LOGO_R   = 48;
+  const FOOTER_H = 24 + LOGO_R*2 + 10 + 36 + 32 + 30; // 228
+
+  // 卡片總高
+  const CARD_H = HDR_H + IPAD + SENT_H + RANKS_H + IPAD + FOOTER_H;
+  // 垂直置中（不超出安全區）
+  const CARD_Y = Math.max(180, Math.round((H - CARD_H) / 2));
+
+  // ── 5. 建立 Canvas ──
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  canvas.style.cssText = 'position:fixed;left:-9999px;top:-9999px;pointer-events:none;';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) { document.body.removeChild(canvas); throw new Error('no ctx'); }
+
+  // ── 6. 背景 ──
+  ctx.fillStyle = TEAL;
+  ctx.fillRect(0, 0, W, H);
+
+  // ── 7. 卡片陰影 + 本體 ──
+  ctx.fillStyle = BK;
+  ctx.fillRect(CARD_X + 10, CARD_Y + 10, CARD_W, CARD_H);
+  ctx.fillStyle = WH;
+  ctx.fillRect(CARD_X, CARD_Y, CARD_W, CARD_H);
+  ctx.strokeStyle = BK; ctx.lineWidth = 5;
+  ctx.strokeRect(CARD_X, CARD_Y, CARD_W, CARD_H);
+
+  // ── 8. Header ──
+  ctx.fillStyle = TEAL;
+  ctx.fillRect(CARD_X, CARD_Y, CARD_W, HDR_H);
+  ctx.strokeStyle = BK; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(CARD_X, CARD_Y+HDR_H); ctx.lineTo(CARD_X+CARD_W, CARD_Y+HDR_H); ctx.stroke();
+  ctx.font = '900 50px "Noto Sans TC"';
+  ctx.fillStyle = BK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('韭點開始接字遊戲', W/2, CARD_Y + HDR_H/2);
+
+  let y = CARD_Y + HDR_H + IPAD;
+
+  // ── 9. 句子區 ──
+  if (hasSent) {
+    ctx.font = '500 24px "Noto Sans TC"';
+    ctx.fillStyle = MUTED; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('本 局 最 終 句 子', W/2, y + 14);
+    y += 40;
+
+    ctx.font = `900 ${SFS}px "Noto Sans TC"`;
+    ctx.fillStyle = BK; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(finalSentence, W/2, y);
+    y += Math.ceil(SFS * 1.25) + 16;
+
+    ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(CARD_X+60, y); ctx.lineTo(CARD_X+CARD_W-60, y); ctx.stroke();
+    y += 20;
+  }
+
+  // ── 10. 排名列 ──
+  const RX = CARD_X + 36, RW = CARD_W - 72;
+  rankItems.forEach((item, idx) => {
+    const ry = y;
+    if (item.winner) { ctx.fillStyle = BK; ctx.fillRect(RX+5, ry+5, RW, ROW_H); }
+    ctx.fillStyle = item.winner ? LIME : WH;
+    ctx.fillRect(RX, ry, RW, ROW_H);
+    ctx.strokeStyle = BK; ctx.lineWidth = 3;
+    ctx.strokeRect(RX, ry, RW, ROW_H);
+
+    // Badge
+    const br = Math.min(22, ROW_H * 0.26);
+    const bx = RX + 20 + br, by = showChars ? ry + ROW_H * 0.32 : ry + ROW_H / 2;
+    ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI*2);
+    ctx.fillStyle = item.winner ? WH : '#efefef'; ctx.fill();
+    ctx.strokeStyle = BK; ctx.lineWidth = 2; ctx.stroke();
+    ctx.font = `900 ${Math.round(br*0.95)}px "Noto Sans TC"`;
+    ctx.fillStyle = BK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(idx + 1, bx, by);
+
+    // 名字
+    const nameY = showChars ? ry + ROW_H * 0.3 : ry + ROW_H / 2;
+    const nFS = Math.min(32, ROW_H * (showChars ? 0.27 : 0.36));
+    ctx.font = `${item.winner ? 900 : 700} ${Math.round(nFS)}px "Noto Sans TC"`;
+    ctx.fillStyle = BK; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(item.name, RX + br*2 + 28, nameY);
+
+    // 原因
+    const rFS = Math.min(22, ROW_H * (showChars ? 0.2 : 0.26));
+    ctx.font = `500 ${Math.round(rFS)}px "Noto Sans TC"`;
+    ctx.fillStyle = MUTED; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText(item.reason, RX + RW - 20, nameY);
+
+    // 字方格
+    if (showChars) {
+      const chars = [...finalSentence];
+      const cSize = Math.min(26, Math.max(16, Math.floor((RW - br*2 - 28 - 10) / chars.length) - 3));
+      const rowY = ry + ROW_H * 0.63;
+      let cx = RX + br*2 + 28;
+      chars.forEach((ch, i) => {
+        const mine = sentenceOwners[i] === item.name;
+        ctx.fillStyle = mine ? LIME : '#eeeeee';
+        ctx.fillRect(cx, rowY, cSize, cSize);
+        ctx.strokeStyle = mine ? BK : '#cccccc'; ctx.lineWidth = 1.5;
+        ctx.strokeRect(cx, rowY, cSize, cSize);
+        ctx.font = `${mine ? 900 : 400} ${Math.round(cSize * 0.58)}px "Noto Sans TC"`;
+        ctx.fillStyle = mine ? BK : '#aaaaaa';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(ch, cx + cSize/2, rowY + cSize/2);
+        cx += cSize + 3;
+      });
+    }
+
+    y += ROW_H + ROW_GAP;
+  });
+  y -= ROW_GAP;
+  y += IPAD;
+
+  // ── 11. Footer ──
+  ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(CARD_X+40, y); ctx.lineTo(CARD_X+CARD_W-40, y); ctx.stroke();
+  y += 24;
+
+  const logoCX = W/2, logoCY = y + LOGO_R;
+  if (logo) {
+    ctx.save();
+    ctx.beginPath(); ctx.arc(logoCX, logoCY, LOGO_R, 0, Math.PI*2); ctx.clip();
+    ctx.drawImage(logo, logoCX-LOGO_R, logoCY-LOGO_R, LOGO_R*2, LOGO_R*2);
+    ctx.restore();
+    ctx.beginPath(); ctx.arc(logoCX, logoCY, LOGO_R, 0, Math.PI*2);
+    ctx.strokeStyle = BK; ctx.lineWidth = 3; ctx.stroke();
+  }
+  y += LOGO_R*2 + 10;
+
+  ctx.font = '900 28px "Noto Sans TC"';
+  ctx.fillStyle = BK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('@from_nine_on', W/2, y + 14);
+  y += 36;
+
+  ctx.font = '500 22px "Noto Sans TC"';
+  ctx.fillStyle = MUTED; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('追蹤我們，每天韭點來看我們在幹嘛 🌱', W/2, y + 12);
+
+  // ── 12. 截圖並返回 ──
+  await new Promise(resolve => requestAnimationFrame(resolve));
+  const dataUrl = canvas.toDataURL('image/png');
+  document.body.removeChild(canvas);
+  return dataUrl;
+}
+
+// 一鍵分享結果 — 用 HTML 渲染分享卡（不依賴 canvas 字體）
+// 預先建好的圖片 File（打開 modal 時就在背景生成，按鈕按下時立即可用）
+let preBuiltShareFile = null;
+
+function shareResult() {
+  const sentChars = [...finalSentence];
+
+  // 句子列
+  const sentHTML = sentChars.length ? `
+    <div class="sc-label">本局最終句子</div>
+    <div class="sc-sentence">${sentChars.map(ch => `<span>${esc(ch)}</span>`).join('')}</div>
+  ` : '';
+
+  // 排名列
+  const reasonLabel = r => r === 'timeout' ? '超時' : r === 'knocked' ? '被敲頭' : '淘汰';
+  const rankItems = [];
+  if (gameOverWinnerName) rankItems.push({ name: gameOverWinnerName, reason: '存活到最後', winner: true });
+  for (let i = eliminationOrder.length - 1; i >= 0; i--) {
+    rankItems.push({ name: eliminationOrder[i].name, reason: reasonLabel(eliminationOrder[i].reason), winner: false });
+  }
+  const medals = ['🥇','🥈','🥉'];
+  const ranksHTML = rankItems.map((item, idx) => {
+    const charBoxes = sentChars.map((ch, i) => {
+      const mine = sentenceOwners[i] === item.name;
+      return `<span class="sc-char ${mine ? 'mine' : 'other'}">${esc(ch)}</span>`;
+    }).join('');
+    return `<div class="sc-rank-row${item.winner ? ' winner' : ''}">
+      <div class="sc-rank-badge">${medals[idx] || (idx+1)}</div>
+      <div class="sc-rank-info">
+        <div class="sc-rank-name">${esc(item.name)}</div>
+        ${sentChars.length ? `<div class="sc-rank-chars">${charBoxes}</div>` : ''}
+      </div>
+      <div class="sc-rank-reason">${esc(item.reason)}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('share-card-inner').innerHTML = `${sentHTML}${ranksHTML}`;
+  document.getElementById('share-img-modal').classList.remove('hidden');
+  refreshIcons();
+
+  // 背景預先生成圖片（讓按鈕能同步呼叫 share）
+  preBuiltShareFile = null;
+  buildResultCanvas().then(async dataUrl => {
+    const res = await fetch(dataUrl);
+    const blob = await res.blob();
+    preBuiltShareFile = new File([blob], 'game-result.png', { type: 'image/png' });
+  }).catch(() => {});
+}
+
+function closeShareModal() {
+  document.getElementById('share-img-modal').classList.add('hidden');
+  preBuiltShareFile = null;
+}
+
+// 分享到 IG 限動
+function shareToIG() {
+  const hint = document.getElementById('share-hint-text');
+  const btn  = document.getElementById('btn-share-ig');
+
+  const doShare = (file) => {
+    // Web Share API：系統選單出現後點 Instagram → 圖片直接載入限動
+    if (navigator.canShare?.({ files: [file] })) {
+      navigator.share({
+        files: [file],
+        title: '韭點開始接字遊戲'
+      }).catch(() => {});
+      return;
+    }
+    // Fallback：下載圖片 + 開 IG（桌機 / 不支援 canShare 的環境）
+    const url = URL.createObjectURL(file);
+    const a   = document.createElement('a');
+    a.href = url; a.download = 'game-result.png'; a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    window.location.href = 'instagram://story-camera';
+    if (hint) hint.textContent = '圖片已儲存！在 IG 限動點 + 選取圖片 📂';
+  };
+
+  if (preBuiltShareFile) {
+    doShare(preBuiltShareFile);
+  } else {
+    // 圖片還在生成，等待後再執行
+    if (btn) btn.disabled = true;
+    if (hint) hint.textContent = '圖片生成中，請稍候…';
+    const wait = setInterval(() => {
+      if (!preBuiltShareFile) return;
+      clearInterval(wait);
+      if (btn) btn.disabled = false;
+      doShare(preBuiltShareFile);
+    }, 300);
+    setTimeout(() => {
+      clearInterval(wait);
+      if (btn) btn.disabled = false;
+      if (hint) hint.textContent = '圖片生成失敗，請截圖分享';
+    }, 8000);
+  }
+}
+
+// 手動開始遊戲
+function requestStart() {
+  pendingRoomReset = false;
+  clearGameData();
+  showScreen('game-screen');
+  document.getElementById('btn-replay').style.display = 'none';
+  socket.emit('requestStart');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Tutorial
+// ─────────────────────────────────────────────────────────────
+function openTutorial() {
+  document.getElementById('tutorial-overlay').classList.remove('hidden');
+  refreshIcons();
+}
+function closeTutorial() {
+  document.getElementById('tutorial-overlay').classList.add('hidden');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Practice Mode — guided tour
+// ─────────────────────────────────────────────────────────────
+const PRACTICE_DEMO_WORD = '月亮';
+let practiceSelPos = 0;
+let practiceTyped  = '';
+
+function startPractice() {
+  practiceSelPos = 0;
+  practiceTyped  = '';
+  showScreen('practice-screen');
+  practiceGoStep(1);
+}
+
+function exitPractice() {
+  showScreen('join-screen');
+  const btn = document.getElementById('btn-join');
+  if (btn) btn.disabled = false;
+}
+
+function practiceGoStep(n) {
+  const body   = document.getElementById('practice-body');
+  const footer = document.getElementById('practice-footer');
+  const totalSteps = 4;
+
+  // 進度條
+  const dots = Array.from({length: totalSteps}, (_, i) => {
+    const cls = i + 1 < n ? 'done' : i + 1 === n ? 'active' : '';
+    return `<div class="progress-dot ${cls}"></div>`;
+  }).join('');
+  const progressBar = `<div class="practice-progress">${dots}</div>`;
+
+  if (n === 1) {
+    body.innerHTML = progressBar + `
+      <div class="step-instruction">
+        <div class="step-label">步驟 1 / 4</div>
+        <div class="step-main-title">認識句子</div>
+        <div class="step-desc">遊戲從一個詞語開始，所有人輪流在這個句子中插入一個字，讓它越來越長！</div>
+      </div>
+      <div class="sentence-card" style="flex-shrink:0">
+        <div class="sentence-label">當前句子</div>
+        <div class="sentence-text" style="font-size:36px">月亮</div>
+      </div>
+      <div class="step-instruction" style="background:var(--teal);border-color:var(--border)">
+        <div class="step-desc" style="color:var(--text)">${ico('timer',15)} 每人只有 <strong>15 秒</strong>作答。超時或被投票敲頭，就被淘汰！</div>
+      </div>`;
+    footer.innerHTML = `<button class="btn btn-primary" onclick="practiceGoStep(2)">${ico('arrow-right')} 下一步：選擇位置</button>`;
+
+  } else if (n === 2) {
+    const chars = [...PRACTICE_DEMO_WORD];
+    let pickerHTML = `<div class="insert-slot selected" data-pos="0"><span class="slot-icon">+</span></div>`;
+    chars.forEach((ch, i) => {
+      pickerHTML += `<div class="char-cell">${esc(ch)}</div>`;
+      pickerHTML += `<div class="insert-slot" data-pos="${i+1}"><span class="slot-icon">+</span></div>`;
+    });
+    practiceSelPos = 0;
+
+    body.innerHTML = progressBar + `
+      <div class="step-instruction">
+        <div class="step-label">步驟 2 / 4</div>
+        <div class="step-main-title">選擇插入位置</div>
+        <div class="step-desc">點選句子中的 <strong style="color:var(--accent2)">＋</strong> 號，決定你的字要加在哪裡。頭、中、尾都可以！</div>
+      </div>
+      <div class="picker-hint">點任意 ＋ 號選擇位置</div>
+      <div class="sentence-picker" id="practice-picker">${pickerHTML}</div>
+      <div id="p-step2-ok" class="hidden-el" style="text-align:center;font-size:13px;font-weight:700;color:var(--accent2);padding:4px 0">${ico('check',14)} 選好了，可以繼續！</div>`;
+    footer.innerHTML = `<button class="btn btn-primary" id="p-btn-2" disabled onclick="practiceGoStep(3)">${ico('arrow-right')} 下一步：輸入文字</button>`;
+
+    refreshIcons();
+    setTimeout(() => {
+      document.querySelectorAll('#practice-picker .insert-slot').forEach(slot => {
+        slot.addEventListener('click', () => {
+          document.querySelectorAll('#practice-picker .insert-slot').forEach(s => s.classList.remove('selected'));
+          slot.classList.add('selected');
+          practiceSelPos = parseInt(slot.dataset.pos, 10);
+          document.getElementById('p-step2-ok')?.classList.remove('hidden-el');
+          const btn = document.getElementById('p-btn-2');
+          if (btn) btn.disabled = false;
+        });
+      });
+    }, 50);
+
+  } else if (n === 3) {
+    const chars  = [...PRACTICE_DEMO_WORD];
+    const before = chars.slice(0, practiceSelPos).join('');
+    const after  = chars.slice(practiceSelPos).join('');
+    practiceTyped = '';
+
+    body.innerHTML = progressBar + `
+      <div class="step-instruction">
+        <div class="step-label">步驟 3 / 4</div>
+        <div class="step-main-title">輸入你的字</div>
+        <div class="step-desc">輸入一個字，下方預覽會即時更新，確認無誤後按「送出」。</div>
+      </div>
+      <div class="char-input-row" style="margin:0 0 10px">
+        <span class="char-input-label">插入一個字：</span>
+        <input type="text" id="p-char-inp" placeholder="字" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          style="width:66px;background:var(--surface);border:2px solid var(--accent);border-radius:11px;color:var(--text);font-size:28px;padding:8px;outline:none;text-align:center;flex-shrink:0;font-family:inherit;transition:border-color .2s">
+        <div class="preview-inline" id="p-preview-inline"><span class="old">${esc(PRACTICE_DEMO_WORD)}</span></div>
+      </div>
+      <div class="preview-text" id="p-preview-full" style="margin-bottom:0">
+        <span class="part-old">${esc(before)}</span><span class="part-new" id="p-new-char">＿</span><span class="part-old">${esc(after)}</span>
+      </div>`;
+    footer.innerHTML = `<button class="btn btn-primary" id="p-btn-3" disabled onclick="practiceGoStep(4)">${ico('send')} 送出看看</button>`;
+
+    refreshIcons();
+    setTimeout(() => {
+      const inp = document.getElementById('p-char-inp');
+      let composing = false;
+      inp?.addEventListener('compositionstart', () => { composing = true; });
+      inp?.addEventListener('compositionend', () => {
+        composing = false;
+        const cs = [...(inp.value || '')];
+        if (cs.length) inp.value = cs[cs.length - 1];
+        practiceUpdatePreview(before, after);
+      });
+      inp?.addEventListener('input', () => {
+        if (composing) return;
+        const cs = [...(inp.value || '')];
+        if (cs.length > 1) inp.value = cs[cs.length - 1];
+        practiceUpdatePreview(before, after);
+      });
+      inp?.focus();
+    }, 50);
+
+  } else if (n === 4) {
+    const chars = [...PRACTICE_DEMO_WORD];
+    const result = chars.slice(0, practiceSelPos).join('') + (practiceTyped || '大') + chars.slice(practiceSelPos).join('');
+
+    body.innerHTML = progressBar + `
+      <div class="step-instruction">
+        <div class="step-label">步驟 4 / 4</div>
+        <div class="step-main-title">敲頭投票</div>
+        <div class="step-desc">送出後，其他玩家可以在限定秒數內投票「敲頭」。達到門檻票數，答題者就直接出局！</div>
+      </div>
+      <div class="sentence-card" style="flex-shrink:0">
+        <div class="sentence-label">送出後的句子</div>
+        <div class="sentence-text" style="font-size:28px">${esc(result)}</div>
+      </div>
+      <div class="knock-section" style="text-align:center">
+        <div class="knock-votes-label">${ico('hammer',16)} 敲頭投票中 &nbsp;—&nbsp; 已投 <strong id="p-knock-count">0</strong> / 需要 1 票</div>
+        <div class="knock-progress" style="margin-bottom:20px"><div class="knock-progress-fill" id="p-knock-fill" style="width:0%"></div></div>
+        <button class="btn-knock" id="p-knock-btn" onclick="practiceDemoKnock()">${ico('hammer', 40)}</button>
+        <div style="margin-top:12px;font-size:13px;color:var(--muted)">↑ 試著敲看看！</div>
+      </div>`;
+    footer.innerHTML = `<button class="btn btn-primary" id="p-btn-4" onclick="practiceGoStep(5)">${ico('check')} 我了解了！</button>`;
+    refreshIcons();
+  } else {
+    body.innerHTML = `
+      <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;text-align:center;gap:14px;padding:24px 0">
+        <div style="font-size:66px;line-height:1;animation:bounce 2s ease-in-out infinite">🎉</div>
+        <div style="font-size:24px;font-weight:900;color:var(--text)">準備好了！</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.7;max-width:260px">你已熟悉基本操作<br>快去找朋友一起開局吧！</div>
+      </div>`;
+    footer.innerHTML = `<button class="btn btn-primary" style="font-size:17px;padding:16px" onclick="exitPractice()">${ico('rocket')} 回主畫面</button>`;
+    refreshIcons();
+  }
+
+  if (n <= 4) refreshIcons();
+}
+
+function practiceUpdatePreview(before, after) {
+  const inp = document.getElementById('p-char-inp');
+  if (!inp) return;
+  const cs = [...(inp.value || '')];
+  const ch = cs[cs.length - 1] || '';
+  practiceTyped = ch;
+
+  const inl = document.getElementById('p-preview-inline');
+  if (inl) inl.innerHTML = ch
+    ? `<span class="old">${esc(before)}</span><span class="ins">${esc(ch)}</span><span class="old">${esc(after)}</span>`
+    : `<span class="old">${esc(PRACTICE_DEMO_WORD)}</span>`;
+
+  const nc = document.getElementById('p-new-char');
+  if (nc) nc.textContent = ch || '＿';
+
+  const btn = document.getElementById('p-btn-3');
+  if (btn) btn.disabled = !ch;
+}
+
+function practiceDemoKnock() {
+  const btn  = document.getElementById('p-knock-btn');
+  const fill = document.getElementById('p-knock-fill');
+  const cnt  = document.getElementById('p-knock-count');
+  if (btn)  { btn.classList.add('voted'); btn.disabled = true; }
+  if (fill) fill.style.width = '100%';
+  if (cnt)  cnt.textContent = '1';
+  refreshIcons();
+  toast(`${ico('hammer',14)} 敲頭了！票數達到門檻，對方會出局！`, 'warn', 3000);
+  // 讓完成按鈕更明顯
+  const nextBtn = document.getElementById('p-btn-4');
+  if (nextBtn) {
+    nextBtn.style.borderColor = 'var(--accent2)';
+  }
+}
+
+// 被淘汰後選擇觀戰
+function startSpectating() {
+  isSpectating = true;
+  render(gameState);
+}
+
+// 被淘汰後選擇離開房間
+function leaveRoom() {
+  socket.disconnect();
+  myId = myRoomId = null;
+  isSpectating = false;
+  showScreen('join-screen');
+}
+
+// ─────────────────────────────────────────────────────────────
+// Emoji Reactions
+// ─────────────────────────────────────────────────────────────
+let lastReactionTime = 0;
+
+function toggleSingles() {
+  const panel = document.getElementById('reaction-singles');
+  const btn   = document.getElementById('reaction-expand-btn');
+  const open  = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+}
+
+function sendReaction(emoji) {
+  const now = Date.now();
+  if (now - lastReactionTime < 1500) return; // 前端速率限制
+  lastReactionTime = now;
+  socket.emit('reaction', { emoji });
+}
+
+socket.on('reaction', ({ emoji }) => {
+  spawnFloatingEmoji(emoji);
+});
+
+function spawnFloatingEmoji(emoji) {
+  const stage = document.getElementById('reaction-stage');
+  if (!stage) return;
+
+  const el = document.createElement('div');
+  el.className = 'floating-emoji';
+
+  // 隨機水平位置（螢幕寬 10%~90%）
+  el.style.left = (10 + Math.random() * 80) + '%';
+  el.textContent = emoji;
+
+  stage.appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ─── 心跳：每 30 秒通知 server 我還在 ───────────────────────
+setInterval(() => {
+  if (myRoomId && socket.connected) socket.emit('heartbeat');
+}, 30000);
+
+// 分頁隱藏超過 5 分鐘自動斷線（防止背景佔位）
+let hiddenTimer = null;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    hiddenTimer = setTimeout(() => {
+      if (myRoomId) socket.disconnect();
+    }, 5 * 60 * 1000);
+  } else {
+    clearTimeout(hiddenTimer);
+    if (!socket.connected && myRoomId) {
+      // 回來但已斷線，回到加入畫面
+      myId = myRoomId = null;
+      showScreen('join-screen');
+      toast('你已因閒置離開房間，請重新整理網頁', 'warn', 4000);
+    }
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+// Join screen logic
+// ─────────────────────────────────────────────────────────────
+// 模式選擇
+let selectedMode = 'random';
+
+function selectMode(mode) {
+  selectedMode = mode;
+  document.getElementById('mode-random').classList.toggle('active', mode === 'random');
+  document.getElementById('mode-private').classList.toggle('active', mode === 'private');
+  const roomField = document.getElementById('room-field');
+  roomField.classList.toggle('hidden-el', mode === 'random');
+  if (mode === 'private' && !document.getElementById('input-room').value) {
+    // 切換到私人房間時才預填代碼
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    document.getElementById('input-room').value =
+      Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  }
+}
+
+// 複製邀請連結
+function copyRoomLink() {
+  const code = document.getElementById('input-room').value.trim().toUpperCase();
+  if (!code) { toast('請先填入房間代碼', 'warn'); return; }
+  const url = window.location.origin + '/?room=' + code;
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('邀請連結已複製！', 'success');
+  };
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => toast('邀請連結已複製！', 'success')).catch(fallback);
+  } else { fallback(); }
+}
+
+// 頁面載入：讀取 ?room= 參數自動填入房間代碼
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const roomFromUrl = params.get('room');
+  if (roomFromUrl) {
+    selectMode('private');
+    document.getElementById('input-room').value = roomFromUrl.toUpperCase().slice(0, 8);
+  }
+})();
+
+// 初始化靜態 icons（join screen、gameover screen）
+refreshIcons();
+
+document.getElementById('btn-join').addEventListener('click', doJoin);
+document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter') doJoin(); });
+document.getElementById('input-room').addEventListener('keydown', e => { if (e.key === 'Enter') doJoin(); });
+
+function doJoin() {
+  const name   = document.getElementById('input-name').value.trim();
+  if (!name) { toast('請輸入名字！', 'warn'); return; }
+  const roomId = selectedMode === 'private'
+    ? document.getElementById('input-room').value.trim().toUpperCase()
+    : null;
+  document.getElementById('btn-join').disabled = true;
+  socket.emit('join', { name, roomId, mode: selectedMode });
+}
+
+// 複製房間代碼
+document.getElementById('room-badge').addEventListener('click', () => {
+  if (!myRoomId || isRandomRoom) return;
+  navigator.clipboard?.writeText(myRoomId).then(() => toast('房間代碼已複製！', 'success'));
+});
+
+// 玩家清單折疊
+document.getElementById('panel-toggle').addEventListener('click', () => {
+  const list  = document.getElementById('player-list');
+  const icon  = document.getElementById('panel-toggle-icon');
+  const isOpen = !list.classList.contains('hidden');
+  list.classList.toggle('hidden', isOpen);
+  icon.classList.toggle('open', !isOpen);
+});
+</script>
+<!-- ══════════════ SHARE IMAGE MODAL ══════════════ -->
+<div id="share-img-modal" class="share-img-modal hidden">
+  <div class="share-img-backdrop" onclick="closeShareModal()"></div>
+  <div class="share-img-box">
+    <div class="share-img-topbar">
+      <span>分享結果</span>
+      <button class="share-img-close" onclick="closeShareModal()"><i data-lucide="x"></i></button>
+    </div>
+    <!-- HTML 分享卡（截圖分享用）-->
+    <div class="share-card">
+      <div class="share-card-header">韭點開始接字遊戲</div>
+      <div class="share-card-body" id="share-card-inner"></div>
+      <div class="share-card-footer">
+        <img src="/logo.jpg" alt="韭點開始">
+        <div class="share-card-footer-text">@from_nine_on &nbsp;追蹤我們，每天韭點來看我們在幹嘛 🌱</div>
+      </div>
+    </div>
+    <p class="share-img-hint" id="share-hint-text">點按鈕 → 選 Instagram → 圖片直接進限動</p>
+    <div class="share-img-actions">
+      <button class="btn btn-primary" id="btn-share-ig" onclick="shareToIG()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>
+        分享到 IG 限動
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "韭點開始接字遊戲",
+  "short_name": "接字遊戲",
+  "description": "多人即時接字遊戲",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#84D2DD",
+  "theme_color": "#84D2DD",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/icon.jpg", "sizes": "192x192", "type": "image/jpeg" },
+    { "src": "/icon.jpg", "sizes": "512x512", "type": "image/jpeg" }
+  ]
+}
