@@ -1937,7 +1937,7 @@
     <button class="btn btn-share" onclick="shareResult()">
       <i data-lucide="share-2"></i> 一鍵分享結果
     </button>
-    <button class="btn btn-primary" id="btn-replay" style="display:none" onclick="requestStart()">
+    <button class="btn btn-primary" id="btn-replay" style="display:none" onclick="goBackToRoom()">
       <i data-lucide="refresh-cw"></i> 再玩一局
     </button>
   </div>
@@ -2931,6 +2931,13 @@ function shareToIG() {
 }
 
 // 手動開始遊戲
+function goBackToRoom() {
+  pendingRoomReset = false;
+  clearGameData();
+  showScreen('game-screen');
+  document.getElementById('btn-replay').style.display = 'none';
+}
+
 function requestStart() {
   pendingRoomReset = false;
   clearGameData();
