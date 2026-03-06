@@ -37,8 +37,8 @@ git push
 7. 加入 Google Analytics（`G-XS6YX0NE59`）追蹤 `game.fromnineon.com` 流量，與 `fromnineon.com` 同一個 GA 帳號下的獨立串流
 
 ## Google Analytics
-- `fromnineon.com`：`G-YEBFB8CRQX`
-- `game.fromnineon.com`：`G-XS6YX0NE59`
+- `fromnineon.com`：`G-K318HMNR62`（在 `/Users/yen/Project/fromnineon/index.html`）
+- `game.fromnineon.com`：`G-XS6YX0NE59`（在 `public/index.html`）
 - 兩個串流都在同一個 GA 帳號（`ritayen123`）下管理
 
 ## 注意事項
