@@ -33,6 +33,13 @@ git push
 3. 修正計時器因伺服器/客戶端時鐘誤差顯示多 1 秒的問題（加上 `Math.min(totalSeconds, ...)` 限制）
 4. 手機用戶按 Enter 不會直接進入遊戲（偵測 `userAgent` 判斷手機）
 5. 「再玩一局」按鈕改為回到等待室，不自動開始遊戲（新增 `goBackToRoom()` 函式）
+6. Logo 加上連結，點擊開新分頁前往 `fromnineon.com`
+7. 加入 Google Analytics（`G-XS6YX0NE59`）追蹤 `game.fromnineon.com` 流量，與 `fromnineon.com` 同一個 GA 帳號下的獨立串流
+
+## Google Analytics
+- `fromnineon.com`：`G-YEBFB8CRQX`
+- `game.fromnineon.com`：`G-XS6YX0NE59`
+- 兩個串流都在同一個 GA 帳號（`ritayen123`）下管理
 
 ## 注意事項
 - Railway 免費方案每月 $5 美元用量，用完會停止服務
