@@ -2789,9 +2789,13 @@ async function buildResultCanvas() {
   const sentChars = [...(finalSentence || '')];
   const hasSent = sentChars.length > 0;
   const SFS = sentChars.length <= 2 ? 120 : sentChars.length <= 4 ? 96
-             : sentChars.length <= 6 ? 80  : sentChars.length <= 9 ? 66 : 54;
-  const SENT_H = hasSent ? (40 + Math.ceil(SFS * 1.25) + 36) : 0;
-  // 40=label區, ceil(SFS*1.25)=大字高度, 36=分隔線區
+             : sentChars.length <= 6 ? 80  : sentChars.length <= 9 ? 66
+             : sentChars.length <= 20 ? 54 : sentChars.length <= 40 ? 38 : 28;
+  const sentLineW = CARD_W - 40;
+  const sentCharsPerLine = Math.max(1, Math.floor(sentLineW / SFS));
+  const sentLineCount = Math.ceil(Math.max(1, sentChars.length) / sentCharsPerLine);
+  const SENT_H = hasSent ? (40 + Math.ceil(SFS * 1.25) * sentLineCount + 36) : 0;
+  // 40=label區, ceil(SFS*1.25)*行數=大字高度, 36=分隔線區
 
   // 排名列高（動態：人多則縮小）
   const hasSentOwners = hasSent && sentenceOwners.length > 0;
@@ -2852,8 +2856,19 @@ async function buildResultCanvas() {
 
     ctx.font = `900 ${SFS}px "Noto Sans TC"`;
     ctx.fillStyle = BK; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-    ctx.fillText(finalSentence, W/2, y);
-    y += Math.ceil(SFS * 1.25) + 16;
+    { // 多行換行繪製
+      const maxLineW = CARD_W - 40;
+      let line = '', lineY = y;
+      for (const ch of [...finalSentence]) {
+        const test = line + ch;
+        if (ctx.measureText(test).width > maxLineW && line) {
+          ctx.fillText(line, W/2, lineY);
+          line = ch; lineY += Math.ceil(SFS * 1.25);
+        } else { line = test; }
+      }
+      if (line) ctx.fillText(line, W/2, lineY);
+      y = lineY + Math.ceil(SFS * 1.25) + 16;
+    }
 
     ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.moveTo(CARD_X+60, y); ctx.lineTo(CARD_X+CARD_W-60, y); ctx.stroke();
@@ -2959,7 +2974,7 @@ function shareResult() {
   const sentChars = [...finalSentence];
 
   // 句子列
-  const scFontSize = sentChars.length <= 10 ? '28px' : sentChars.length <= 20 ? '22px' : sentChars.length <= 30 ? '17px' : '14px';
+  const scFontSize = sentChars.length <= 10 ? '28px' : sentChars.length <= 20 ? '22px' : sentChars.length <= 30 ? '17px' : sentChars.length <= 50 ? '14px' : '12px';
   const sentHTML = sentChars.length ? `
     <div class="sc-label">本局最終句子</div>
     <div class="sc-sentence" style="font-size:${scFontSize}">${sentChars.map(ch => `<span>${esc(ch)}</span>`).join('')}</div>
