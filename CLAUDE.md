@@ -41,6 +41,10 @@ git push
 - `game.fromnineon.com`：`G-XS6YX0NE59`（在 `public/index.html`）
 - 兩個串流都在同一個 GA 帳號（`ritayen123`）下管理
 
+## GA 查看方式
+- GA 後台 → 報表 → 即時總覽 → 新增比較 → 主機名稱 → `game.fromnineon.com`
+- 兩個網站流量預設合併顯示，需用主機名稱篩選才能分開看
+
 ## 注意事項
 - Railway 免費方案每月 $5 美元用量，用完會停止服務
 - 測試房間 ID：`9999`（有機器人甲乙丙，真人加入自動開始）
