@@ -95,6 +95,10 @@ git push
 7. `og:title` / `twitter:title` 同步更新
 8. JSON-LD schema 加入 `ProfessionalService`（LocalBusiness 子類型）+ `address`、`areaServed`、`priceRange`
 9. 合作夥伴 logo alt 文字填入各品牌名稱（17–21、28 不明暫留空）
+10. 圖片全面轉為 WebP（reel、portrait、team），檔案大小大幅縮減
+11. 移除 `vercel.json`（www redirect 造成所有圖片 ERR_TOO_MANY_REDIRECTS）
+12. 三個 reel 播放數字統一 `font-size: 16px`
+13. 更新 Reel 數據：單支最高 886 萬、三支合計 1,500 萬；重新排序（411萬置中）
 
 ## Analytics Dashboard（`/Users/yen/Project/fromnineon/dashboard.html`）
 - 網址：`https://fromnineon.com/dashboard.html`
