@@ -47,6 +47,7 @@ git push
 16. 新增完整 GA 事件追蹤（見下方 GA Event 清單）
 17. 新增 `logo_click` 事件追蹤點擊 Logo 前往 `fromnineon.com`
 18. `MAX_SENTENCE` 從 40 改為 60（用戶反映 40 字太短）
+19. 修正長句（>40字）分享卡溢出問題：canvas 改為多行換行繪製，SFS 增加 38px/28px 斷點；結算畫面補 12px 斷點（>50字）
 
 ## Google Analytics
 - `fromnineon.com`：`G-K318HMNR62`（在 `/Users/yen/Project/fromnineon/index.html`）
