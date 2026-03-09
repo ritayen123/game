@@ -24,7 +24,7 @@ git push
 - `TURN_TIME = 15`：每輪答題秒數
 - `KNOCK_WINDOW = 5`：敲頭投票窗口（秒）
 - `MIN_PLAYERS = 2`：最少幾人才能開始
-- `MAX_SENTENCE = 40`：句子最大字元數
+- `MAX_SENTENCE = 60`：句子最大字元數
 - `MAX_RANDOM_PLAYERS = 8`：隨機房間最多人數
 - `MAX_ROOMS = 50`：伺服器最大房間數（超過回傳「流量超載」）
 
@@ -46,6 +46,7 @@ git push
 15. 新增 `pendingMove = null` 在 `turnStart`（防禦性清除過期暫存）
 16. 新增完整 GA 事件追蹤（見下方 GA Event 清單）
 17. 新增 `logo_click` 事件追蹤點擊 Logo 前往 `fromnineon.com`
+18. `MAX_SENTENCE` 從 40 改為 60（用戶反映 40 字太短）
 
 ## Google Analytics
 - `fromnineon.com`：`G-K318HMNR62`（在 `/Users/yen/Project/fromnineon/index.html`）
