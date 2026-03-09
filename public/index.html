@@ -527,6 +527,20 @@
   .timer-fill.warn   { stroke: var(--warn); }
   .timer-fill.danger { stroke: var(--danger); }
 
+  @keyframes timer-pulse {
+    0%, 100% { transform: scale(1); }
+    50%       { transform: scale(1.18); }
+  }
+  @keyframes timer-shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-3px); }
+    40%      { transform: translateX(3px); }
+    60%      { transform: translateX(-3px); }
+    80%      { transform: translateX(3px); }
+  }
+  .timer-circle.pulse { animation: timer-pulse .6s ease-in-out infinite; }
+  .timer-circle.shake { animation: timer-shake .3s ease-in-out infinite; }
+
   .timer-number {
     position: absolute;
     inset: 0;
@@ -537,7 +551,9 @@
     font-weight: 900;
     color: var(--text);
     z-index: 1;
+    transition: font-size .15s;
   }
+  .timer-number.big { font-size: 18px; color: var(--danger); }
 
   /* ── 行動區 ── */
   .action-card {
@@ -900,7 +916,7 @@
     flex-wrap: wrap;
   }
   .sc-sentence span {
-    font-size: 28px;
+    font-size: inherit;
     font-weight: 900;
     line-height: 1;
   }
@@ -1109,16 +1125,20 @@
   .sentence-picker {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     padding: 14px 10px;
     background: #f5f5f5;
     border: 2px solid var(--border);
     border-radius: var(--radius);
     margin-bottom: 14px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: 0;
     min-height: 70px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+  .sentence-picker::-webkit-scrollbar { display: none; }
 
   .char-cell {
     font-size: 28px;
@@ -1876,7 +1896,7 @@
   <div class="turn-bar" id="turn-bar">
     <div class="turn-info" id="turn-info">等待玩家加入…</div>
     <div class="timer-wrap hidden-el" id="timer-wrap">
-      <div class="timer-circle">
+      <div class="timer-circle" id="timer-circle">
         <svg class="timer-svg" viewBox="0 0 40 40">
           <circle class="timer-track" cx="20" cy="20" r="18"/>
           <circle class="timer-fill" id="timer-fill" cx="20" cy="20" r="18"/>
@@ -1986,6 +2006,7 @@ function refreshIcons() { lucide.createIcons(); }
 
 let myId            = null;
 let myRoomId        = null;
+let myName          = null;
 let myPending       = false;
 let isRandomRoom    = false;
 let gameState       = {};  // latest state snapshot
@@ -2003,6 +2024,7 @@ let eliminationOrder  = []; // [{ name, reason }] first eliminated = index 0
 let finalSentence     = '';
 let gameOverWinnerName = '';
 let pendingRoomReset  = false; // roomReset 已收到但玩家還在結算頁
+let awaitingReset     = false; // 玩家已按再玩一局，但 roomReset 還沒到
 let moveHistory       = []; // [{ playerName, char, pos }] accepted moves
 let pendingMove       = null;
 let startWordLength   = 0;
@@ -2069,16 +2091,25 @@ function stopTimerUI() {
   clearInterval(timerInterval);
   timerInterval = null;
   document.getElementById('timer-wrap').classList.add('hidden-el');
+  const circle = document.getElementById('timer-circle');
+  if (circle) { circle.classList.remove('pulse', 'shake'); }
+  const num = document.getElementById('timer-number');
+  if (num) num.classList.remove('big');
 }
 
 function updateTimerUI(left, total) {
-  document.getElementById('timer-number').textContent = left;
-  const circumference = 113; // 2 * pi * 18
+  const numEl    = document.getElementById('timer-number');
+  const fill     = document.getElementById('timer-fill');
+  const circle   = document.querySelector('.timer-circle');
+  numEl.textContent = left;
+  const circumference = 113;
   const pct = total > 0 ? left / total : 0;
-  const fill = document.getElementById('timer-fill');
   fill.style.strokeDashoffset = circumference * (1 - pct);
-  fill.classList.toggle('warn',   left <= 8 && left > 4);
-  fill.classList.toggle('danger', left <= 4);
+  fill.classList.toggle('warn',   left <= 8 && left > 5);
+  fill.classList.toggle('danger', left <= 5);
+  // 動畫
+  circle.classList.toggle('pulse', left <= 5 && left > 0);
+  numEl.classList.toggle('big', left <= 5 && left > 0);
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -2136,6 +2167,15 @@ function renderPlayers(players, currentPlayerId) {
 // ─────────────────────────────────────────────────────────────
 function renderActionArea(state) {
   const area    = document.getElementById('action-area');
+
+  if (awaitingReset) {
+    area.innerHTML = `<div class="status-msg">
+      <span class="emoji">${ico('loader', 42)}</span>
+      準備下一局中…
+    </div>`;
+    return;
+  }
+
   const isMyTurn = state.currentPlayerId === myId;
   const gs      = state.gameState;
 
@@ -2163,10 +2203,11 @@ function renderActionArea(state) {
 
   // 自己是 pending
   if (me?.status === 'pending') {
+    const activeCount = state.players.filter(p => p.status === 'active').length;
     area.innerHTML = `<div class="status-msg">
       <span class="emoji">${ico('clock', 42)}</span>
       你將在<strong>下一局</strong>加入遊戲<br>
-      先觀摩一下吧！
+      <span style="font-size:14px;color:var(--muted);margin-top:6px;display:block">還剩 <strong>${activeCount}</strong> 人對決中，結束後你就能加入！</span>
     </div>`;
     return;
   }
@@ -2216,12 +2257,13 @@ function renderActionArea(state) {
     const pct = state.knockRequired > 0
       ? Math.min(100, (state.knockVotes / state.knockRequired) * 100)
       : 0;
-    const canVote   = !isMyTurn && !hasVotedKnock;
     const btnClass  = hasVotedKnock ? 'voted' : '';
-    const btnDisabled = isMyTurn || hasVotedKnock;
-    const hint = isMyTurn
-      ? `${ico('clock', 14)} 等待其他人評判…`
-      : (hasVotedKnock ? `${ico('check', 14)} 已投票` : '覺得句子不成立？敲他！');
+    const btnDisabled = isMyTurn || hasVotedKnock || isSpectating;
+    const hint = isSpectating
+      ? `${ico('eye', 14)} 觀戰中`
+      : isMyTurn
+        ? `${ico('clock', 14)} 等待其他人評判…`
+        : (hasVotedKnock ? `${ico('check', 14)} 已投票` : '覺得句子不成立？敲他！');
 
     area.innerHTML = `<div class="knock-section">
       <div class="knock-votes-label">
@@ -2309,6 +2351,7 @@ function renderActionArea(state) {
         }
 
         inp?.focus();
+        setTimeout(() => inp?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
       }, 50);
     } else {
       // 別人的回合，顯示等待
@@ -2341,7 +2384,7 @@ function submitAnswer() {
 // Knock
 // ─────────────────────────────────────────────────────────────
 function sendKnock() {
-  if (hasVotedKnock) return;
+  if (hasVotedKnock || isSpectating) return;
   hasVotedKnock = true;
   socket.emit('knock');
   const btn = document.getElementById('btn-knock');
@@ -2393,7 +2436,7 @@ function render(state) {
       : `<span class="turn-name">${esc(current?.name || '?')}</span> 的回合`;
 
     if (state.turnEndTime && !timerInterval) {
-      const total = isKnock ? 8 : 15;
+      const total = isKnock ? 5 : 15;
       startTimerUI(state.turnEndTime, total);
     }
   }
@@ -2468,6 +2511,7 @@ socket.on('turnStart', ({ currentPlayerId, currentPlayerName, totalTime, turnEnd
   hasVotedKnock    = false;
   selectedPosition = 0;
   sentenceHighlight = null; clearTimeout(highlightTimer);
+  pendingMove = null; // 清除上一回合的暫存（若斷線導致 accepted/knocked 未收到）
   stopTimerUI();
   startTimerUI(turnEndTime, totalTime);
   if (currentPlayerId === myId) {
@@ -2522,8 +2566,14 @@ socket.on('eliminated', ({ playerId, playerName, reason }) => {
   }
 });
 
-socket.on('playerLeft', ({ playerName }) => {
-  toast(`${playerName} 離開了遊戲`, 'warn', 2000);
+socket.on('playerLeft', ({ playerId, playerName }) => {
+  const isKnockWindow = gameState?.gameState === 'knock-window';
+  const wasSubmitter  = gameState?.currentPlayerId === playerId;
+  if (isKnockWindow && wasSubmitter) {
+    toast(`${esc(playerName)} 斷線，本次出字作廢`, 'warn', 3000);
+  } else {
+    toast(`${esc(playerName)} 離開了遊戲`, 'warn', 2000);
+  }
 });
 
 socket.on('gameOver', ({ winnerName }) => {
@@ -2613,6 +2663,12 @@ socket.on('roomReset', () => {
   stopTimerUI();
   hasVotedKnock = false;
   isSpectating  = false;
+  awaitingReset = false;
+  // 若自己之前是 pending，通知現在可以參加了
+  if (myPending) {
+    myPending = false;
+    toast(`${ico('zap',14)} 下一局開始！你現在可以參加了`, 'success', 3000);
+  }
   // 若在結算頁，保留遊戲資料讓玩家還能分享；離開時才清除
   const onGameover = document.getElementById('gameover-screen').classList.contains('active');
   if (onGameover) {
@@ -2625,7 +2681,7 @@ socket.on('roomReset', () => {
 });
 
 socket.on('kicked', ({ reason }) => {
-  myId = myRoomId = null;
+  myId = myRoomId = myName = null;
   document.getElementById('idle-overlay').classList.remove('hidden');
 });
 
@@ -2633,6 +2689,18 @@ socket.on('error', ({ message }) => {
   toast(`${ico('triangle-alert',14)} ${esc(message)}`, 'danger');
   const btn = document.getElementById('btn-submit');
   if (btn) btn.disabled = false;
+});
+
+socket.on('disconnect', (reason) => {
+  if (!myId) return; // 玩家自己主動離開，不顯示
+  if (reason === 'io client disconnect') return; // leaveRoom 主動斷開，不顯示
+  toast(`${ico('wifi-off',14)} 網路斷線，嘗試重新連線中…`, 'danger', 8000);
+});
+
+socket.on('connect', () => {
+  if (!myName || !myRoomId) return; // 初次連線或已離開，不自動重連
+  toast(`${ico('wifi',14)} 重新連線成功，重新加入房間…`, 'success', 2000);
+  socket.emit('join', { name: myName, roomId: myRoomId, mode: 'private' });
 });
 
 // 建立結果圖
@@ -2849,9 +2917,10 @@ function shareResult() {
   const sentChars = [...finalSentence];
 
   // 句子列
+  const scFontSize = sentChars.length <= 10 ? '28px' : sentChars.length <= 20 ? '22px' : sentChars.length <= 30 ? '17px' : '14px';
   const sentHTML = sentChars.length ? `
     <div class="sc-label">本局最終句子</div>
-    <div class="sc-sentence">${sentChars.map(ch => `<span>${esc(ch)}</span>`).join('')}</div>
+    <div class="sc-sentence" style="font-size:${scFontSize}">${sentChars.map(ch => `<span>${esc(ch)}</span>`).join('')}</div>
   ` : '';
 
   // 排名列
@@ -2940,6 +3009,7 @@ function shareToIG() {
 
 // 手動開始遊戲
 function goBackToRoom() {
+  if (!pendingRoomReset) awaitingReset = true;
   pendingRoomReset = false;
   clearGameData();
   showScreen('game-screen');
@@ -3170,8 +3240,10 @@ function startSpectating() {
 // 被淘汰後選擇離開房間
 function leaveRoom() {
   socket.disconnect();
-  myId = myRoomId = null;
+  myId = myRoomId = myName = null;
   isSpectating = false;
+  awaitingReset = false;
+  pendingRoomReset = false;
   showScreen('join-screen');
 }
 
@@ -3229,7 +3301,7 @@ document.addEventListener('visibilitychange', () => {
     clearTimeout(hiddenTimer);
     if (!socket.connected && myRoomId) {
       // 回來但已斷線，回到加入畫面
-      myId = myRoomId = null;
+      myId = myRoomId = myName = null;
       showScreen('join-screen');
       toast('你已因閒置離開房間，請重新整理網頁', 'warn', 4000);
     }
@@ -3297,6 +3369,7 @@ function doJoin() {
   const roomId = selectedMode === 'private'
     ? document.getElementById('input-room').value.trim().toUpperCase()
     : null;
+  myName = name;
   document.getElementById('btn-join').disabled = true;
   socket.emit('join', { name, roomId, mode: selectedMode });
 }

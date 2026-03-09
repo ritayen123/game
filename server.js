@@ -15,7 +15,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // ─── 常數 ───────────────────────────────────────────────
 const TURN_TIME    = 15;    // 每輪秒數
-const KNOCK_WINDOW = 8;     // 敲頭投票窗口（秒）
+const KNOCK_WINDOW = 5;     // 敲頭投票窗口（秒）
 const MIN_PLAYERS  = 2;     // 最少幾人才能開始
 const START_DELAY  = 3000;  // 足夠人數後倒數開始（ms）
 const MAX_SENTENCE = 40;    // 句子最大字元數
@@ -406,6 +406,7 @@ function findOrCreateRandomRoom() {
       return id;
     }
   }
+  if (rooms.size >= MAX_ROOMS) return null;
   const id = genRoomId();
   const room = createRoom(id);
   room.isRandom = true;
@@ -440,6 +441,10 @@ io.on('connection', (socket) => {
     let rid;
     if (mode === 'random') {
       rid = findOrCreateRandomRoom();
+      if (rid === null) {
+        socket.emit('error', { message: '流量超載中，請稍等再加入！' });
+        return;
+      }
     } else {
       rid = (roomId?.trim().toUpperCase()) || genRoomId();
       // 房間上限檢查
@@ -480,14 +485,9 @@ io.on('connection', (socket) => {
       }, 2000);
     }
 
-    // 隨機房間：第 2 人加入才啟動倒數；人滿立即開始
+    // 隨機房間：等待玩家手動開始
     if (room.isRandom && !isPlaying) {
-      const activeCount = activePlayers(room).length;
-      if (activeCount >= MAX_RANDOM_PLAYERS) {
-        startGame(rid);
-      } else if (activeCount === 2 && !room.lobbyTimer) {
-        startLobbyCountdown(rid);
-      }
+      notifyCanStart(rid);
     }
   });
 
