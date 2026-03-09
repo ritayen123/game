@@ -2004,10 +2004,19 @@ function ico(name, size = 18) {
 // 初始化所有靜態 Lucide icons
 function refreshIcons() { lucide.createIcons(); }
 
+// ─────────────────────────────────────────────────────────────
+// Analytics helper
+// ─────────────────────────────────────────────────────────────
+function track(eventName, params = {}) {
+  if (typeof gtag !== 'function') return;
+  gtag('event', eventName, params);
+}
+
 let myId            = null;
 let myRoomId        = null;
 let myName          = null;
 let myPending       = false;
+let joinedAt        = null; // 加入房間的時間戳（計算等待時長）
 let isRandomRoom    = false;
 let gameState       = {};  // latest state snapshot
 let timerInterval   = null;
@@ -2377,6 +2386,9 @@ function submitAnswer() {
   if (!char) { toast('請先輸入一個字！', 'warn'); return; }
   const btn = document.getElementById('btn-submit');
   if (btn) btn.disabled = true;
+  const sentLen = [...(gameState?.currentSentence || '')].length;
+  const posPct = sentLen > 0 ? Math.round((selectedPosition / sentLen) * 100) : 100;
+  track('answer_submit', { insert_position_pct: posPct });
   socket.emit('submit', { position: selectedPosition, character: char });
 }
 
@@ -2386,6 +2398,7 @@ function submitAnswer() {
 function sendKnock() {
   if (hasVotedKnock || isSpectating) return;
   hasVotedKnock = true;
+  track('knock_vote');
   socket.emit('knock');
   const btn = document.getElementById('btn-knock');
   if (btn) { btn.classList.add('voted'); btn.disabled = true; }
@@ -2446,12 +2459,17 @@ function render(state) {
 // ─────────────────────────────────────────────────────────────
 // Socket Events
 // ─────────────────────────────────────────────────────────────
-socket.on('joined', ({ playerId, roomId, isPending, isRandom }) => {
+socket.on('joined', ({ playerId, roomId, isPending, isRandom, isNewRoom }) => {
   myId         = playerId;
   myRoomId     = roomId;
   myPending    = isPending;
   isRandomRoom = !!isRandom;
   isSpectating = false;
+  joinedAt     = Date.now();
+  track('join_success', { mode: isRandom ? 'random' : 'private', is_pending: isPending });
+  if (!isRandom) {
+    track(isNewRoom ? 'private_room_created' : 'private_room_joined');
+  }
 
   const badge = document.getElementById('room-badge');
   if (isRandom) {
@@ -2505,6 +2523,10 @@ socket.on('gameStarted', ({ startWord }) => {
   moveHistory = []; pendingMove = null;
   toast(`遊戲開始！起始詞：${startWord}`, 'success', 3000);
   document.getElementById('countdown-overlay').classList.add('hidden');
+  const playerCount = gameState?.players?.filter(p => p.status === 'active').length || 0;
+  const waitSec = joinedAt ? Math.round((Date.now() - joinedAt) / 1000) : null;
+  track('game_start', { player_count: playerCount, start_word: startWord });
+  if (waitSec !== null) track('lobby_wait_duration', { seconds_waited: waitSec, mode: isRandomRoom ? 'random' : 'private' });
 });
 
 socket.on('turnStart', ({ currentPlayerId, currentPlayerName, totalTime, turnEndTime }) => {
@@ -2557,6 +2579,7 @@ socket.on('accepted', ({ newSentence }) => {
 socket.on('eliminated', ({ playerId, playerName, reason }) => {
   stopTimerUI();
   eliminationOrder.push({ name: playerName, reason });
+  if (playerId === myId) track('eliminated', { reason });
   // 被敲頭淘汰的 toast 已由 'knocked' 事件顯示，不重複
   if (reason !== 'knocked') {
     const isMe = playerId === myId;
@@ -2583,6 +2606,14 @@ socket.on('gameOver', ({ winnerName }) => {
 
   finalSentence = gameState.currentSentence || '';
   gameOverWinnerName = winnerName || '';
+
+  const isWinner = !!winnerName && gameState.players?.find(p => p.name === winnerName)?.id === myId;
+  track('game_over', {
+    is_winner: isWinner,
+    player_count: (gameState.players?.length || 0),
+    sentence_length: [...finalSentence].length,
+    total_moves: moveHistory.length,
+  });
 
   if (winnerName) {
     const isMe = gameState.players?.find(p => p.name === winnerName)?.id === myId;
@@ -2689,16 +2720,26 @@ socket.on('error', ({ message }) => {
   toast(`${ico('triangle-alert',14)} ${esc(message)}`, 'danger');
   const btn = document.getElementById('btn-submit');
   if (btn) btn.disabled = false;
+  // join 失敗（在 join screen 才算）
+  if (!myId) {
+    const reason = message.includes('超載') ? 'overload'
+      : message.includes('滿') ? 'server_full'
+      : 'other';
+    track('join_fail', { reason });
+    document.getElementById('btn-join').disabled = false;
+  }
 });
 
 socket.on('disconnect', (reason) => {
   if (!myId) return; // 玩家自己主動離開，不顯示
   if (reason === 'io client disconnect') return; // leaveRoom 主動斷開，不顯示
+  track('disconnect', { game_state: gameState?.gameState || 'unknown', reason });
   toast(`${ico('wifi-off',14)} 網路斷線，嘗試重新連線中…`, 'danger', 8000);
 });
 
 socket.on('connect', () => {
   if (!myName || !myRoomId) return; // 初次連線或已離開，不自動重連
+  track('reconnect_success', { game_state: gameState?.gameState || 'unknown' });
   toast(`${ico('wifi',14)} 重新連線成功，重新加入房間…`, 'success', 2000);
   socket.emit('join', { name: myName, roomId: myRoomId, mode: 'private' });
 });
@@ -2914,6 +2955,7 @@ async function buildResultCanvas() {
 let preBuiltShareFile = null;
 
 function shareResult() {
+  track('share_click', { method: 'open_modal' });
   const sentChars = [...finalSentence];
 
   // 句子列
@@ -2966,6 +3008,7 @@ function closeShareModal() {
 
 // 分享到 IG 限動
 function shareToIG() {
+  track('share_click', { method: 'instagram' });
   const hint = document.getElementById('share-hint-text');
   const btn  = document.getElementById('btn-share-ig');
 
@@ -3009,6 +3052,7 @@ function shareToIG() {
 
 // 手動開始遊戲
 function goBackToRoom() {
+  track('play_again');
   if (!pendingRoomReset) awaitingReset = true;
   pendingRoomReset = false;
   clearGameData();
@@ -3234,11 +3278,13 @@ function practiceDemoKnock() {
 // 被淘汰後選擇觀戰
 function startSpectating() {
   isSpectating = true;
+  track('spectate_start');
   render(gameState);
 }
 
 // 被淘汰後選擇離開房間
 function leaveRoom() {
+  track('leave_room', { game_state: gameState?.gameState || 'unknown' });
   socket.disconnect();
   myId = myRoomId = myName = null;
   isSpectating = false;
@@ -3263,6 +3309,7 @@ function sendReaction(emoji) {
   const now = Date.now();
   if (now - lastReactionTime < 1500) return; // 前端速率限制
   lastReactionTime = now;
+  track('reaction_sent', { emoji });
   socket.emit('reaction', { emoji });
 }
 
@@ -3316,6 +3363,7 @@ let selectedMode = 'random';
 
 function selectMode(mode) {
   selectedMode = mode;
+  track('mode_select', { mode });
   document.getElementById('mode-random').classList.toggle('active', mode === 'random');
   document.getElementById('mode-private').classList.toggle('active', mode === 'private');
   const roomField = document.getElementById('room-field');
@@ -3358,6 +3406,12 @@ function copyRoomLink() {
 // 初始化靜態 icons（join screen、gameover screen）
 refreshIcons();
 
+// session_start
+track('session_start', {
+  is_mobile: /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent),
+  referrer: document.referrer ? new URL(document.referrer).hostname : 'direct',
+});
+
 document.getElementById('btn-join').addEventListener('click', doJoin);
 const isMobile = /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
 document.getElementById('input-name').addEventListener('keydown', e => { if (e.key === 'Enter' && !isMobile) doJoin(); });
@@ -3370,6 +3424,7 @@ function doJoin() {
     ? document.getElementById('input-room').value.trim().toUpperCase()
     : null;
   myName = name;
+  track('join_attempt', { mode: selectedMode });
   document.getElementById('btn-join').disabled = true;
   socket.emit('join', { name, roomId, mode: selectedMode });
 }
@@ -3377,7 +3432,10 @@ function doJoin() {
 // 複製房間代碼
 document.getElementById('room-badge').addEventListener('click', () => {
   if (!myRoomId || isRandomRoom) return;
-  navigator.clipboard?.writeText(myRoomId).then(() => toast('房間代碼已複製！', 'success'));
+  navigator.clipboard?.writeText(myRoomId).then(() => {
+    toast('房間代碼已複製！', 'success');
+    track('room_code_copy');
+  });
 });
 
 // 玩家清單折疊

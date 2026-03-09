@@ -466,6 +466,7 @@ io.on('connection', (socket) => {
     socket.data.name   = trimName;
 
     const isPlaying = room.gameState !== 'waiting' && room.gameState !== 'countdown';
+    const isNewRoom = room.players.length === 0 && !room.isRandom;
     const player = { id: socket.id, name: trimName, status: isPlaying ? 'pending' : 'active' };
     room.players.push(player);
 
@@ -474,6 +475,7 @@ io.on('connection', (socket) => {
       roomId:    rid,
       isPending: isPlaying,
       isRandom:  !!room.isRandom,
+      isNewRoom,
     });
     emitState(rid);
 
