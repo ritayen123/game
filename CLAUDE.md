@@ -101,6 +101,7 @@ git push
 - 使用 Google OAuth（GIS）直接呼叫 GA4 Data API + GSC API，不需後端
 - 三個 tab：🎮 接字遊戲 / 🌐 主站 / 🔍 搜尋
 - 主站 hostname filter 使用 OR 同時涵蓋 `fromnineon.com` 和 `www.fromnineon.com`
+- 各分頁底部加入資料驅動的「建議改善事項」，依實際數據（分享率、再玩率、斷線率、跳出率、CTR、排名等）動態顯示 warn / info / ok 三種層級的建議卡片
 
 ## 注意事項
 - Railway 免費方案每月 $5 美元用量，用完會停止服務
