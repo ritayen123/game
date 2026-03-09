@@ -45,6 +45,7 @@ git push
 14. 斷線後自動重連：`socket.on('connect')` 時若有 `myName + myRoomId` 自動 rejoin
 15. 新增 `pendingMove = null` 在 `turnStart`（防禦性清除過期暫存）
 16. 新增完整 GA 事件追蹤（見下方 GA Event 清單）
+17. 新增 `logo_click` 事件追蹤點擊 Logo 前往 `fromnineon.com`
 
 ## Google Analytics
 - `fromnineon.com`：`G-K318HMNR62`（在 `/Users/yen/Project/fromnineon/index.html`）
@@ -80,6 +81,24 @@ git push
 | `reconnect_success` | 重連成功 | `game_state` |
 | `room_code_copy` | 複製房間代碼 | — |
 | `reaction_sent` | 送出 emoji 反應 | `emoji` |
+| `logo_click` | 點擊 Logo 前往主站 | — |
+
+## fromnineon.com 主站優化紀錄（`/Users/yen/Project/fromnineon/index.html`）
+1. 表單開啟 CAPTCHA（`_captcha` 從 `false` 改為 `true`）
+2. 所有 `target="_blank"` 外部連結加上 `rel="noopener noreferrer"`
+3. 合作夥伴 logo（60 張）加上 `loading="lazy"`
+4. Footer 文字對比度提升符合 WCAG AA（links: 0.35→0.65，social: 0.3→0.65，copy: 0.2→0.45）
+5. 裝飾性 SVG 加上 `aria-hidden="true"`（共 10 個）
+6. `<title>` 改為 `韭點開始 | 短影音創作 · 品牌行銷`
+7. `og:title` / `twitter:title` 同步更新
+8. JSON-LD schema 加入 `ProfessionalService`（LocalBusiness 子類型）+ `address`、`areaServed`、`priceRange`
+9. 合作夥伴 logo alt 文字填入各品牌名稱（17–21、28 不明暫留空）
+
+## Analytics Dashboard（`/Users/yen/Project/fromnineon/dashboard.html`）
+- 網址：`https://fromnineon.com/dashboard.html`
+- 使用 Google OAuth（GIS）直接呼叫 GA4 Data API + GSC API，不需後端
+- 三個 tab：🎮 接字遊戲 / 🌐 主站 / 🔍 搜尋
+- 主站 hostname filter 使用 OR 同時涵蓋 `fromnineon.com` 和 `www.fromnineon.com`
 
 ## 注意事項
 - Railway 免費方案每月 $5 美元用量，用完會停止服務
