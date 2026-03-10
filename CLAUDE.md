@@ -103,6 +103,23 @@ git push
 13. 更新 Reel 數據：單支最高 886 萬、三支合計 1,500 萬；重新排序（411萬置中）
 14. 服務需求 `<select>` 加上 `required` 屬性、移除未使用的 `animateCount` 死碼
 16. `logo.jpg` 轉為 WebP（63KB→7KB，89% 縮減）；所有引用改為 `logo.webp`；hero logo 加 `fetchpriority="high"` 優化 LCP
+17. 修正 Accessibility 對比度不足（5 個元素）：
+    - `#services .section-title .accent`：lime on teal → 改為黑色
+    - `#team .section-label`：lime on green → 改為白色
+    - `#team .section-title .accent`：lime on green → 改為白色
+    - `#team .section-desc`：`rgba(255,255,255,0.7)` → `0.9`
+    - `.footer-copy`：`rgba(255,255,255,0.45)` → `0.55`
+
+## PageSpeed 分數（2026-03-10 Lighthouse 桌機版）
+- Performance: 55（主因：未壓縮 CSS/JS、網路延遲）
+- Accessibility: 96 → 修正後預計 100
+- Best Practices: 100
+- SEO: 100
+
+## 重導向問題（待處理）
+- `fromnineon.com/` → `www.fromnineon.com/` 浪費 1144ms
+- 原因：Vercel 把 `www.fromnineon.com` 設為主要 domain
+- 修法：Vercel 控制台 → Settings → Domains → 把 `fromnineon.com` 設為 Primary
 15. SEO 全面優化（19 項）：
     - `<title>` 改為「韭點開始 | 台灣短影音品牌行銷 · 社群行銷 · Instagram Reels」
     - `meta description` 修正 811→886、加入社群行銷/KOL
