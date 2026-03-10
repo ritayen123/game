@@ -139,8 +139,8 @@ function botPlay(roomId) {
   const newSentence = sentenceArr.slice(0, pos).join('') + char + sentenceArr.slice(pos).join('');
 
   if (newSentence.length > MAX_SENTENCE) {
-    const winner = room.players.find(p => p.status === 'active' && !isBot(p.id)) || activePlayers(room)[0] || null;
-    endGame(roomId, winner);
+    // Bot 超出字數限制，視同超時淘汰，繼續遊戲
+    eliminateCurrentPlayer(roomId, 'timeout');
     return;
   }
 
