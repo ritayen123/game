@@ -26,7 +26,7 @@ git push
 - `MIN_PLAYERS = 2`：最少幾人才能開始
 - `MAX_SENTENCE = 60`：句子最大字元數
 - `MAX_RANDOM_PLAYERS = 8`：隨機房間最多人數
-- `MAX_ROOMS = 50`：伺服器最大房間數（超過回傳「流量超載」）
+- `MAX_ROOMS = 200`：伺服器最大房間數（超過回傳「流量超載」）
 
 ## 已修改紀錄
 1. `KNOCK_WINDOW` 從 5 秒改為 8 秒，後來改回 5 秒
