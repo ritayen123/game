@@ -102,6 +102,7 @@ git push
 12. 三個 reel 播放數字統一 `font-size: 16px`
 13. 更新 Reel 數據：單支最高 886 萬、三支合計 1,500 萬；重新排序（411萬置中）
 14. 服務需求 `<select>` 加上 `required` 屬性、移除未使用的 `animateCount` 死碼
+16. `logo.jpg` 轉為 WebP（63KB→7KB，89% 縮減）；所有引用改為 `logo.webp`；hero logo 加 `fetchpriority="high"` 優化 LCP
 15. SEO 全面優化（19 項）：
     - `<title>` 改為「韭點開始 | 台灣短影音品牌行銷 · 社群行銷 · Instagram Reels」
     - `meta description` 修正 811→886、加入社群行銷/KOL
