@@ -48,6 +48,8 @@ git push
 17. 新增 `logo_click` 事件追蹤點擊 Logo 前往 `fromnineon.com`
 18. `MAX_SENTENCE` 從 40 改為 60（用戶反映 40 字太短）
 19. 修正長句（>40字）分享卡溢出問題：canvas 改為多行換行繪製，SFS 增加 38px/28px 斷點；結算畫面補 12px 斷點（>50字）
+20. 修正重連後計時器進度圈用硬寫值的問題：新增 `serverTurnTime` / `serverKnockWindow` 變數，在 `turnStart` / `answerSubmitted` 時更新，`renderGameState` 改用這兩個變數
+21. 修正 bot 句子超過 MAX_SENTENCE 時直接結束遊戲的問題：改為淘汰該 bot（`eliminateCurrentPlayer(roomId, 'timeout')`），遊戲繼續進行
 
 ## Google Analytics
 - `fromnineon.com`：`G-K318HMNR62`（在 `/Users/yen/Project/fromnineon/index.html`）
@@ -106,6 +108,9 @@ git push
 - 三個 tab：🎮 接字遊戲 / 🌐 主站 / 🔍 搜尋
 - 主站 hostname filter 使用 OR 同時涵蓋 `fromnineon.com` 和 `www.fromnineon.com`
 - 各分頁底部加入資料驅動的「建議改善事項」，依實際數據（分享率、再玩率、斷線率、跳出率、CTR、排名等）動態顯示 warn / info / ok 三種層級的建議卡片
+- 遊戲 tab 加入「流量來源」區塊（sessionSource 甜甜圈圖 + 明細表），附 (not set) 說明備註
+- token 存入 `localStorage`（`dash_gtoken` / `dash_gtoken_exp`），重整頁面自動還原登入（1 小時內有效）
+- 修正切換天數（7/30/90天）後資料不重新載入的 bug（`resetTabData` 補上 `tabLoaded` 重置）
 
 ## 注意事項
 - Railway 免費方案每月 $5 美元用量，用完會停止服務
