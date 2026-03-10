@@ -101,6 +101,24 @@ git push
 11. 移除 `vercel.json`（www redirect 造成所有圖片 ERR_TOO_MANY_REDIRECTS）
 12. 三個 reel 播放數字統一 `font-size: 16px`
 13. 更新 Reel 數據：單支最高 886 萬、三支合計 1,500 萬；重新排序（411萬置中）
+14. 服務需求 `<select>` 加上 `required` 屬性、移除未使用的 `animateCount` 死碼
+15. SEO 全面優化（19 項）：
+    - `<title>` 改為「韭點開始 | 台灣短影音品牌行銷 · 社群行銷 · Instagram Reels」
+    - `meta description` 修正 811→886、加入社群行銷/KOL
+    - `canonical` / `og:url` 補尾部斜線與 sitemap 一致
+    - 新增 `og:image:alt`
+    - OG / Twitter title & description 同步更新
+    - JSON-LD：811→886 全修正、加 `foundingDate`/`knowsAbout`、移除重複 `@context`
+    - H1 改為含「台灣」「短影音」「社群行銷」關鍵字
+    - Hero 副標加入「台灣」「Instagram Reels」
+    - H2（Reels / Services）各加入目標關鍵字
+    - 9 位團隊照片 alt 全加職稱與關鍵字
+    - 6 張不明合作夥伴 logo 空 alt 補備用文字
+    - 3 個 Reel 連結加 `aria-label` 關鍵字描述 + `rel="nofollow"`
+    - Footer `<h5>` 改 `<h3>`，修正標題層級
+    - Google Fonts 改為非阻塞載入（`preload` + `onload`）
+    - `robots.txt` 封鎖 `/dashboard.html`
+    - `sitemap.xml` changefreq `monthly` → `weekly`
 
 ## Analytics Dashboard（`/Users/yen/Project/fromnineon/dashboard.html`）
 - 網址：`https://fromnineon.com/dashboard.html`
