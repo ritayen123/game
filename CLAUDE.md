@@ -52,7 +52,7 @@ git push
 21. 修正 bot 句子超過 MAX_SENTENCE 時直接結束遊戲的問題：改為淘汰該 bot（`eliminateCurrentPlayer(roomId, 'timeout')`），遊戲繼續進行
 22. 優勝者勝利體驗強化：彩色 confetti 動畫（300 幀/130 粒子）、標題漸層閃光動畫、獎盃搖擺彈跳、頂部橫幅、分享按鈕改為「向朋友炫耀 🎉」並脈動
 23. 優勝者分享卡改版：HTML 預覽卡 header 改為亮黃背景 + 勝利橫幅「🏆 我是第一名！沒人能贏我😎」；Canvas 圖片改為 lime 亮綠黃背景＋彩色裝飾點、圓角卡片（22px）、黑底 header；句子加左色條外框；底部加 CTA + `game.fromnineon.com`
-24. 全站「接字遊戲」改名為「加字挑戰」（index.html 10 處、manifest.json 3 處、server.js 1 處）
+24. 全站「接字遊戲」改名為「加字挑戰」（index.html 10 處、manifest.json 3 處、server.js 1 處；fromnineon dashboard.html 2 處）
 
 ## Google Analytics
 - `fromnineon.com`：`G-K318HMNR62`（在 `/Users/yen/Project/fromnineon/index.html`）
@@ -145,6 +145,7 @@ git push
 - 網址：`https://fromnineon.com/dashboard.html`
 - 使用 Google OAuth（GIS）直接呼叫 GA4 Data API + GSC API，不需後端
 - 三個 tab：🎮 加字挑戰 / 🌐 主站 / 🔍 搜尋
+- dashboard.html 改名同步：tab 標籤 + banner 標題
 - 主站 hostname filter 使用 OR 同時涵蓋 `fromnineon.com` 和 `www.fromnineon.com`
 - 各分頁底部加入資料驅動的「建議改善事項」，依實際數據（分享率、再玩率、斷線率、跳出率、CTR、排名等）動態顯示 warn / info / ok 三種層級的建議卡片
 - 遊戲 tab 加入「流量來源」區塊（sessionSource 甜甜圈圖 + 明細表），附 (not set) 說明備註
