@@ -878,6 +878,68 @@
     font-size: 16px;
   }
 
+  /* ── 優勝者勝利畫面 ── */
+  #confetti-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 999;
+    display: none;
+  }
+
+  .winner-banner {
+    display: none;
+    width: 100%;
+    max-width: 440px;
+    background: var(--accent2);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    box-shadow: 3px 3px 0 #000;
+    letter-spacing: 0.3px;
+  }
+
+  #gameover-screen.is-winner .winner-banner { display: block; }
+
+  #gameover-screen.is-winner .gameover-emoji {
+    animation: winner-bounce 0.55s ease-in-out infinite alternate;
+  }
+  @keyframes winner-bounce {
+    from { transform: scale(1) rotate(-6deg); }
+    to   { transform: scale(1.18) rotate(6deg); }
+  }
+
+  #gameover-screen.is-winner .gameover-title {
+    font-size: 36px;
+    background: linear-gradient(135deg, #ff6b35 0%, #f7c948 40%, #ff6b35 80%, #f7c948 100%);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer-text 2.5s linear infinite;
+  }
+  @keyframes shimmer-text {
+    0%   { background-position: 200% center; }
+    100% { background-position: -200% center; }
+  }
+
+  #gameover-screen.is-winner .btn-share {
+    background: var(--accent2);
+    font-size: 18px;
+    padding: 16px;
+    box-shadow: 4px 4px 0 #000;
+    animation: share-pop 1.8s ease-in-out infinite;
+  }
+  @keyframes share-pop {
+    0%, 100% { transform: scale(1);    box-shadow: 4px 4px 0 #000; }
+    50%       { transform: scale(1.04); box-shadow: 5px 5px 0 #000; }
+  }
+
   /* ── 分享卡內容（HTML 渲染，無 canvas 字體問題）── */
   .share-card {
     background: var(--bg);
@@ -1945,8 +2007,14 @@
   </div>
 </div>
 
+<!-- Confetti canvas (for winner) -->
+<canvas id="confetti-canvas"></canvas>
+
 <!-- ══════════════ GAME OVER SCREEN ══════════════ -->
 <div class="screen" id="gameover-screen">
+  <!-- Winner-only banner -->
+  <div class="winner-banner">🎉 恭喜你是最後存活者！快向朋友炫耀！🎉</div>
+
   <div class="gameover-emoji" id="gameover-emoji"><i data-lucide="trophy"></i></div>
   <div class="gameover-title" id="gameover-title">遊戲結束</div>
   <div class="gameover-winner" id="gameover-winner"></div>
@@ -1962,7 +2030,7 @@
 
   <!-- 按鈕 -->
   <div class="gameover-actions">
-    <button class="btn btn-share" onclick="shareResult()">
+    <button class="btn btn-share" id="btn-share" onclick="shareResult()">
       <i data-lucide="share-2"></i> 一鍵分享結果
     </button>
     <button class="btn btn-primary" id="btn-replay" style="display:none" onclick="goBackToRoom()">
@@ -2618,12 +2686,24 @@ socket.on('gameOver', ({ winnerName }) => {
     total_moves: moveHistory.length,
   });
 
+  const screen = document.getElementById('gameover-screen');
+  const shareBtn = document.getElementById('btn-share');
   if (winnerName) {
     const isMe = gameState.players?.find(p => p.name === winnerName)?.id === myId;
     document.getElementById('gameover-emoji').innerHTML  = isMe ? ico('award', 80) : ico('trophy', 80);
     document.getElementById('gameover-title').textContent  = isMe ? '你贏了！！！' : '遊戲結束';
     document.getElementById('gameover-winner').innerHTML = `${ico('star', 18)} ${esc(winnerName)} 獲勝！`;
+    if (isMe) {
+      screen.classList.add('is-winner');
+      shareBtn.innerHTML = `${ico('share-2', 20)} 向朋友炫耀 🎉`;
+      launchConfetti();
+    } else {
+      screen.classList.remove('is-winner');
+      shareBtn.innerHTML = `${ico('share-2', 20)} 一鍵分享結果`;
+    }
   } else {
+    screen.classList.remove('is-winner');
+    shareBtn.innerHTML = `${ico('share-2', 20)} 一鍵分享結果`;
     document.getElementById('gameover-emoji').innerHTML  = ico('handshake', 80);
     document.getElementById('gameover-title').textContent  = '遊戲結束';
     document.getElementById('gameover-winner').textContent = '平局！沒有贏家';
@@ -2691,6 +2771,8 @@ function clearGameData() {
   pendingMove        = null;
   startWordLength    = 0;
   sentenceOwners     = [];
+  document.getElementById('gameover-screen').classList.remove('is-winner');
+  stopConfetti();
 }
 
 socket.on('roomReset', () => {
@@ -2746,6 +2828,72 @@ socket.on('connect', () => {
   toast(`${ico('wifi',14)} 重新連線成功，重新加入房間…`, 'success', 2000);
   socket.emit('join', { name: myName, roomId: myRoomId, mode: 'private' });
 });
+
+// ─────────────────────────────────────────────────────────────
+// Confetti（優勝者慶祝動畫）
+// ─────────────────────────────────────────────────────────────
+let confettiRaf = null;
+function launchConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.style.display = 'block';
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const colors = ['#f7c948', '#ff6b35', '#84D2DD', '#AAF952', '#ff8b94', '#ffffff', '#c084fc'];
+  const pieces = Array.from({ length: 130 }, () => ({
+    x:         Math.random() * canvas.width,
+    y:         Math.random() * -canvas.height * 0.5 - 20,
+    r:         Math.random() * 7 + 4,
+    speedY:    Math.random() * 2.5 + 1.5,
+    speedX:    (Math.random() - 0.5) * 1.5,
+    tiltAngle: Math.random() * Math.PI * 2,
+    tiltSpeed: Math.random() * 0.08 + 0.03,
+    color:     colors[Math.floor(Math.random() * colors.length)],
+    shape:     Math.random() < 0.5 ? 'circle' : 'rect',
+  }));
+  let frame = 0;
+  function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.tiltAngle += p.tiltSpeed;
+      p.y += p.speedY;
+      p.x += p.speedX + Math.sin(p.tiltAngle) * 0.8;
+      // fade out in last 60 frames
+      const alpha = frame > 240 ? Math.max(0, 1 - (frame - 240) / 60) : 1;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = p.color;
+      if (p.shape === 'circle') {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.tiltAngle);
+        ctx.fillRect(-p.r, -p.r * 0.5, p.r * 2, p.r);
+        ctx.restore();
+      }
+      if (p.y > canvas.height) {
+        p.y = -20;
+        p.x = Math.random() * canvas.width;
+      }
+    });
+    ctx.globalAlpha = 1;
+    frame++;
+    if (frame < 300) {
+      confettiRaf = requestAnimationFrame(draw);
+    } else {
+      canvas.style.display = 'none';
+    }
+  }
+  if (confettiRaf) { cancelAnimationFrame(confettiRaf); confettiRaf = null; }
+  draw();
+}
+function stopConfetti() {
+  if (confettiRaf) { cancelAnimationFrame(confettiRaf); confettiRaf = null; }
+  const canvas = document.getElementById('confetti-canvas');
+  if (canvas) canvas.style.display = 'none';
+}
 
 // 建立結果圖
 async function buildResultCanvas() {
