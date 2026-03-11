@@ -3029,7 +3029,7 @@ async function buildResultCanvas() {
   if (amWinner) {
     ctx.font = '900 44px "Noto Sans TC"';
     ctx.fillStyle = LIME; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('我是最後存活者！', W/2, CARD_Y + HDR_H * 0.45);
+    ctx.fillText('我是第一名！沒人能贏我', W/2, CARD_Y + HDR_H * 0.45);
     ctx.font = '500 22px "Noto Sans TC"';
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
     ctx.fillText('韭點開始接字遊戲', W/2, CARD_Y + HDR_H * 0.82);
@@ -3203,7 +3203,7 @@ function shareResult() {
   const winTagEl = document.getElementById('share-winner-tag');
   if (amWinner) {
     cardEl.classList.add('winner-card');
-    headerEl.textContent = '🏆 我贏了！';
+    headerEl.textContent = '🏆 我是第一名！沒人能贏我😎';
     winTagEl.style.display = '';
   } else {
     cardEl.classList.remove('winner-card');
@@ -3681,7 +3681,7 @@ document.getElementById('panel-toggle').addEventListener('click', () => {
     <!-- HTML 分享卡（截圖分享用）-->
     <div class="share-card" id="share-card-el">
       <div class="share-card-header" id="share-card-header-el">韭點開始接字遊戲</div>
-      <div class="share-winner-tag" id="share-winner-tag" style="display:none">🏆 我是最後存活者！快來挑戰我！</div>
+      <div class="share-winner-tag" id="share-winner-tag" style="display:none">🏆 我是第一名！沒人能贏我😎</div>
       <div class="share-card-body" id="share-card-inner"></div>
       <div class="share-card-footer">
         <img src="/logo.jpg" alt="韭點開始">
