@@ -1035,16 +1035,8 @@
   /* Winner share card */
   .share-card.winner-card .share-card-header {
     background: var(--accent2);
-  }
-  .share-winner-tag {
-    background: var(--accent2);
-    border-bottom: 2px solid var(--border);
-    padding: 9px 14px;
-    text-align: center;
     font-size: 15px;
-    font-weight: 900;
-    letter-spacing: 0.5px;
-    color: var(--text);
+    letter-spacing: 0.3px;
   }
 
   /* Share card CTA / URL */
@@ -3261,14 +3253,12 @@ function shareResult() {
   const amWinner = !!gameOverWinnerName && gameState.players?.find(p => p.name === gameOverWinnerName)?.id === myId;
   const cardEl   = document.getElementById('share-card-el');
   const headerEl = document.getElementById('share-card-header-el');
-  const winTagEl = document.getElementById('share-winner-tag');
-  headerEl.textContent = '韭點開始加字挑戰';
   if (amWinner) {
     cardEl.classList.add('winner-card');
-    winTagEl.style.display = '';
+    headerEl.textContent = '🏆 我是第一名！沒人能贏我😎';
   } else {
     cardEl.classList.remove('winner-card');
-    winTagEl.style.display = 'none';
+    headerEl.textContent = '韭點開始加字挑戰';
   }
 
   const ctaLine = amWinner ? '你敢來挑戰我嗎？' : '一起來玩吧！';
@@ -3743,7 +3733,6 @@ document.getElementById('panel-toggle').addEventListener('click', () => {
     <!-- HTML 分享卡（截圖分享用）-->
     <div class="share-card" id="share-card-el">
       <div class="share-card-header" id="share-card-header-el">韭點開始加字挑戰</div>
-      <div class="share-winner-tag" id="share-winner-tag" style="display:none">🏆 我是第一名！沒人能贏我😎</div>
       <div class="share-card-body" id="share-card-inner"></div>
       <div class="share-card-footer">
         <img src="/logo.jpg" alt="韭點開始">
