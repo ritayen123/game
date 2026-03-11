@@ -91,6 +91,7 @@ git push
 | `logo_click` | 點擊 Logo 前往主站 | — |
 
 ## fromnineon.com 主站優化紀錄（`/Users/yen/Project/fromnineon/index.html`）
+18. Hero H1 視覺改為「韭點開始」，SEO 保留「台灣頂尖短影音 · 社群行銷團隊」（用 `.sr-only` span 隱藏於 DOM，Google 可爬取但視覺不顯示）
 1. 表單開啟 CAPTCHA（`_captcha` 從 `false` 改為 `true`）
 2. 所有 `target="_blank"` 外部連結加上 `rel="noopener noreferrer"`
 3. 合作夥伴 logo（60 張）加上 `loading="lazy"`
