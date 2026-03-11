@@ -51,7 +51,7 @@ git push
 20. 修正重連後計時器進度圈用硬寫值的問題：新增 `serverTurnTime` / `serverKnockWindow` 變數，在 `turnStart` / `answerSubmitted` 時更新，`renderGameState` 改用這兩個變數
 21. 修正 bot 句子超過 MAX_SENTENCE 時直接結束遊戲的問題：改為淘汰該 bot（`eliminateCurrentPlayer(roomId, 'timeout')`），遊戲繼續進行
 22. 優勝者勝利體驗強化：彩色 confetti 動畫（300 幀/130 粒子）、標題漸層閃光動畫、獎盃搖擺彈跳、頂部橫幅、分享按鈕改為「向朋友炫耀 🎉」並脈動
-23. 優勝者分享卡改版：HTML 預覽卡 header 改為亮黃背景 + 勝利橫幅「🏆 我是第一名！沒人能贏我😎」；Canvas 圖片改為 lime 亮綠黃背景＋彩色裝飾點、圓角卡片（22px）、黑底 header；句子加左色條外框；底部加 CTA + `game.fromnineon.com`
+23. 優勝者分享卡改版：HTML 預覽卡 header 依身份顯示不同文字（優勝者：「🏆 我是第一名！沒人能贏我😎」亮黃底；其他：「韭點開始加字挑戰」原色）；移除重複的 winner-tag div；Canvas 圖片改為 lime 亮綠黃背景＋彩色裝飾點、圓角卡片（22px）、黑底 header；句子加左色條外框；底部加 CTA + `game.fromnineon.com`
 24. 全站「接字遊戲」改名為「加字挑戰」（index.html 10 處、manifest.json 3 處、server.js 1 處；fromnineon dashboard.html 2 處）
 
 ## Google Analytics
