@@ -1032,6 +1032,23 @@
   }
   .share-card-footer-text { font-size: 11px; font-weight: 700; color: var(--muted); }
 
+  /* Winner share card */
+  .share-card.winner-card .share-card-header {
+    background: var(--accent2);
+    font-size: 19px;
+    letter-spacing: 2px;
+  }
+  .share-winner-tag {
+    background: var(--accent2);
+    border-bottom: 2px solid var(--border);
+    padding: 7px 12px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: var(--text);
+  }
+
   /* ── Toast 通知 ── */
   .toast-container {
     position: fixed;
@@ -2920,6 +2937,7 @@ async function buildResultCanvas() {
   });
 
   const TEAL = '#84D2DD', LIME = '#AAF952', BK = '#000', WH = '#fff', MUTED = '#777';
+  const amWinner = !!gameOverWinnerName && gameState.players?.find(p => p.name === gameOverWinnerName)?.id === myId;
 
   // ── 3. 計算排名列表 ──
   const rankItems = [];
@@ -2976,8 +2994,24 @@ async function buildResultCanvas() {
   if (!ctx) { document.body.removeChild(canvas); throw new Error('no ctx'); }
 
   // ── 6. 背景 ──
-  ctx.fillStyle = TEAL;
-  ctx.fillRect(0, 0, W, H);
+  if (amWinner) {
+    ctx.fillStyle = LIME;
+    ctx.fillRect(0, 0, W, H);
+    // 撒彩色裝飾點
+    const dotColors = [TEAL, '#f7c948', '#ff6b35', '#ff8b94', '#c084fc', WH];
+    const rng = (s => () => { s = (s * 16807 + 0) % 2147483647; return s / 2147483647; })(42);
+    for (let i = 0; i < 90; i++) {
+      ctx.beginPath();
+      ctx.arc(rng() * W, rng() * H, rng() * 18 + 5, 0, Math.PI * 2);
+      ctx.globalAlpha = 0.25 + rng() * 0.3;
+      ctx.fillStyle = dotColors[Math.floor(rng() * dotColors.length)];
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  } else {
+    ctx.fillStyle = TEAL;
+    ctx.fillRect(0, 0, W, H);
+  }
 
   // ── 7. 卡片陰影 + 本體 ──
   ctx.fillStyle = BK;
@@ -2988,13 +3022,22 @@ async function buildResultCanvas() {
   ctx.strokeRect(CARD_X, CARD_Y, CARD_W, CARD_H);
 
   // ── 8. Header ──
-  ctx.fillStyle = TEAL;
+  ctx.fillStyle = amWinner ? BK : TEAL;
   ctx.fillRect(CARD_X, CARD_Y, CARD_W, HDR_H);
   ctx.strokeStyle = BK; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.moveTo(CARD_X, CARD_Y+HDR_H); ctx.lineTo(CARD_X+CARD_W, CARD_Y+HDR_H); ctx.stroke();
-  ctx.font = '900 50px "Noto Sans TC"';
-  ctx.fillStyle = BK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('韭點開始接字遊戲', W/2, CARD_Y + HDR_H/2);
+  if (amWinner) {
+    ctx.font = '900 44px "Noto Sans TC"';
+    ctx.fillStyle = LIME; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('我是最後存活者！', W/2, CARD_Y + HDR_H * 0.45);
+    ctx.font = '500 22px "Noto Sans TC"';
+    ctx.fillStyle = 'rgba(255,255,255,0.7)';
+    ctx.fillText('韭點開始接字遊戲', W/2, CARD_Y + HDR_H * 0.82);
+  } else {
+    ctx.font = '900 50px "Noto Sans TC"';
+    ctx.fillStyle = BK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('韭點開始接字遊戲', W/2, CARD_Y + HDR_H/2);
+  }
 
   let y = CARD_Y + HDR_H + IPAD;
 
@@ -3153,6 +3196,20 @@ function shareResult() {
       <div class="sc-rank-reason">${esc(item.reason)}</div>
     </div>`;
   }).join('');
+
+  const amWinner = !!gameOverWinnerName && gameState.players?.find(p => p.name === gameOverWinnerName)?.id === myId;
+  const cardEl   = document.getElementById('share-card-el');
+  const headerEl = document.getElementById('share-card-header-el');
+  const winTagEl = document.getElementById('share-winner-tag');
+  if (amWinner) {
+    cardEl.classList.add('winner-card');
+    headerEl.textContent = '🏆 我贏了！';
+    winTagEl.style.display = '';
+  } else {
+    cardEl.classList.remove('winner-card');
+    headerEl.textContent = '韭點開始接字遊戲';
+    winTagEl.style.display = 'none';
+  }
 
   document.getElementById('share-card-inner').innerHTML = `${sentHTML}${ranksHTML}`;
   document.getElementById('share-img-modal').classList.remove('hidden');
@@ -3622,8 +3679,9 @@ document.getElementById('panel-toggle').addEventListener('click', () => {
       <button class="share-img-close" onclick="closeShareModal()"><i data-lucide="x"></i></button>
     </div>
     <!-- HTML 分享卡（截圖分享用）-->
-    <div class="share-card">
-      <div class="share-card-header">韭點開始接字遊戲</div>
+    <div class="share-card" id="share-card-el">
+      <div class="share-card-header" id="share-card-header-el">韭點開始接字遊戲</div>
+      <div class="share-winner-tag" id="share-winner-tag" style="display:none">🏆 我是最後存活者！快來挑戰我！</div>
       <div class="share-card-body" id="share-card-inner"></div>
       <div class="share-card-footer">
         <img src="/logo.jpg" alt="韭點開始">
