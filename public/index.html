@@ -2179,8 +2179,9 @@ let isSpectating    = false; // 被淘汰後選擇觀戰
 let sentenceHighlight = null; // { before, added, after, full }
 let highlightTimer    = null;
 let eliminationOrder  = []; // [{ name, reason }] first eliminated = index 0
-let finalSentence     = '';
+let finalSentence      = '';
 let gameOverWinnerName = '';
+let gameOverWinnerId   = null;
 let pendingRoomReset  = false; // roomReset 已收到但玩家還在結算頁
 let awaitingReset     = false; // 玩家已按再玩一局，但 roomReset 還沒到
 let moveHistory       = []; // [{ playerName, char, pos }] accepted moves
@@ -2710,7 +2711,7 @@ socket.on('knockVote', ({ votes, required, voterName }) => {
   const fill = document.querySelector('.knock-progress-fill');
   const label = document.querySelector('.knock-votes-label');
   if (fill)  fill.style.width = `${pct}%`;
-  if (label) label.innerHTML = `已投 <strong>${votes}</strong> / ${required} 票`;
+  if (label) label.innerHTML = `${ico('hammer', 16)} 敲頭投票中 &nbsp;—&nbsp; 已投 <strong>${votes}</strong> / 需要 ${required} 票`;
 });
 
 socket.on('knocked', ({ playerId, playerName }) => {
@@ -2725,6 +2726,7 @@ socket.on('accepted', ({ newSentence }) => {
   stopTimerUI();
   sentenceHighlight = null; clearTimeout(highlightTimer);
   if (pendingMove) { moveHistory.push(pendingMove); pendingMove = null; }
+  if (newSentence && gameState) gameState.currentSentence = newSentence;
   toast(`${ico('circle-check',14)} 句子通過！`, 'success', 2000);
 });
 
@@ -2749,17 +2751,26 @@ socket.on('playerLeft', ({ playerId, playerName }) => {
   } else {
     toast(`${esc(playerName)} 離開了遊戲`, 'warn', 2000);
   }
+  // 若在遊戲中斷線（非正式淘汰），補入結算排名
+  const gs = gameState?.gameState;
+  if (gs === 'playing' || gs === 'knock-window') {
+    const p = gameState?.players?.find(p => p.id === playerId);
+    if (p?.status === 'active') {
+      eliminationOrder.push({ name: playerName, reason: 'left' });
+    }
+  }
 });
 
-socket.on('gameOver', ({ winnerName }) => {
+socket.on('gameOver', ({ winnerId, winnerName }) => {
   stopTimerUI();
   clearInterval(countdownTimer);
   document.getElementById('countdown-overlay').classList.add('hidden');
 
   finalSentence = gameState.currentSentence || '';
   gameOverWinnerName = winnerName || '';
+  gameOverWinnerId   = winnerId  || null;
 
-  const isWinner = !!winnerName && gameState.players?.find(p => p.name === winnerName)?.id === myId;
+  const isWinner = !!winnerId && winnerId === myId;
   track('game_over', {
     is_winner: isWinner,
     player_count: (gameState.players?.length || 0),
@@ -2770,7 +2781,7 @@ socket.on('gameOver', ({ winnerName }) => {
   const screen = document.getElementById('gameover-screen');
   const shareBtn = document.getElementById('btn-share');
   if (winnerName) {
-    const isMe = gameState.players?.find(p => p.name === winnerName)?.id === myId;
+    const isMe = !!winnerId && winnerId === myId;
     document.getElementById('gameover-emoji').innerHTML  = isMe ? ico('award', 80) : ico('trophy', 80);
     document.getElementById('gameover-title').textContent  = isMe ? '你贏了！！！' : '遊戲結束';
     document.getElementById('gameover-winner').innerHTML = `${ico('star', 18)} ${esc(winnerName)} 獲勝！`;
@@ -2808,7 +2819,7 @@ socket.on('gameOver', ({ winnerName }) => {
 
   // 排名：最後存活的(winnerName)排第1，其餘按淘汰逆序
   const ranksEl = document.getElementById('gameover-ranks');
-  const reasonLabel = r => r === 'timeout' ? '超時' : r === 'knocked' ? '被敲頭' : '淘汰';
+  const reasonLabel = r => r === 'timeout' ? '超時' : r === 'knocked' ? '被敲頭' : r === 'left' ? '斷線離開' : '淘汰';
   const rankItems = [];
   if (winnerName) rankItems.push({ name: winnerName, reason: '存活到最後' });
   for (let i = eliminationOrder.length - 1; i >= 0; i--) {
@@ -2848,6 +2859,7 @@ function clearGameData() {
   eliminationOrder   = [];
   finalSentence      = '';
   gameOverWinnerName = '';
+  gameOverWinnerId   = null;
   moveHistory        = [];
   pendingMove        = null;
   startWordLength    = 0;
@@ -3001,7 +3013,7 @@ async function buildResultCanvas() {
   });
 
   const TEAL = '#84D2DD', LIME = '#AAF952', BK = '#000', WH = '#fff', MUTED = '#777';
-  const amWinner = !!gameOverWinnerName && gameState.players?.find(p => p.name === gameOverWinnerName)?.id === myId;
+  const amWinner = !!gameOverWinnerId && gameOverWinnerId === myId;
 
   // ── 3. 計算排名列表 ──
   const rankItems = [];
@@ -3267,7 +3279,7 @@ function shareResult() {
   ` : '';
 
   // 排名列
-  const reasonLabel = r => r === 'timeout' ? '超時' : r === 'knocked' ? '被敲頭' : '淘汰';
+  const reasonLabel = r => r === 'timeout' ? '超時' : r === 'knocked' ? '被敲頭' : r === 'left' ? '斷線離開' : '淘汰';
   const rankItems = [];
   if (gameOverWinnerName) rankItems.push({ name: gameOverWinnerName, reason: '存活到最後', winner: true });
   for (let i = eliminationOrder.length - 1; i >= 0; i--) {
@@ -3289,7 +3301,7 @@ function shareResult() {
     </div>`;
   }).join('');
 
-  const amWinner = !!gameOverWinnerName && gameState.players?.find(p => p.name === gameOverWinnerName)?.id === myId;
+  const amWinner = !!gameOverWinnerId && gameOverWinnerId === myId;
   const cardEl   = document.getElementById('share-card-el');
   const headerEl = document.getElementById('share-card-header-el');
   if (amWinner) {
