@@ -53,6 +53,9 @@ git push
 22. 優勝者勝利體驗強化：彩色 confetti 動畫（300 幀/130 粒子）、標題漸層閃光動畫、獎盃搖擺彈跳、頂部橫幅、分享按鈕改為「向朋友炫耀 🎉」並脈動
 23. 優勝者分享卡改版：HTML 預覽卡 header 依身份顯示不同文字（優勝者：「🏆 我是第一名！沒人能贏我😎」亮黃底；其他：「韭點開始加字挑戰」原色）；移除重複的 winner-tag div；Canvas 圖片改為 lime 亮綠黃背景＋彩色裝飾點、圓角卡片（22px）、黑底 header；句子加左色條外框；底部加 CTA + `game.fromnineon.com`
 24. 全站「接字遊戲」改名為「加字挑戰」（index.html 10 處、manifest.json 3 處、server.js 1 處；fromnineon dashboard.html 2 處）
+25. 補齊縮圖圖示：加入 favicon.png(32×32)、icon-192.png(192×192)、icon-512.png(512×512)、og-image.jpg(1200×630)；index.html 補齊 OG/Twitter Card/apple-touch-icon/PWA/msapplication meta tags；manifest.json 更新為三個正確尺寸 PNG 圖示
+26. 修正 4 個玩家體驗 bug：(1) gameOver 改用 winnerId 判斷贏家，修正同名玩家贏家畫面錯誤；(2) 斷線玩家補入 eliminationOrder，結算排名顯示「斷線離開」；(3) accepted 事件立即更新 currentSentence，消除 ~1.5s 顯示舊句子；(4) knockVote label 保留錘子圖示
+27. 修正 2 個衍生小 bug：knockVote label 更新後補 refreshIcons()（確保錘子 SVG 立即渲染）；leaveRoom 補清除 lobbyInterval（防止離開後計時器繼續背景執行）
 
 ## Google Analytics
 - `fromnineon.com`：`G-K318HMNR62`（在 `/Users/yen/Project/fromnineon/index.html`）
@@ -91,7 +94,6 @@ git push
 | `logo_click` | 點擊 Logo 前往主站 | — |
 
 ## fromnineon.com 主站優化紀錄（`/Users/yen/Project/fromnineon/index.html`）
-18. Hero H1 視覺改為「韭點開始」，SEO 保留「台灣頂尖短影音 · 社群行銷團隊」（用 `.sr-only` span 隱藏於 DOM，Google 可爬取但視覺不顯示）
 1. 表單開啟 CAPTCHA（`_captcha` 從 `false` 改為 `true`）
 2. 所有 `target="_blank"` 外部連結加上 `rel="noopener noreferrer"`
 3. 合作夥伴 logo（60 張）加上 `loading="lazy"`
@@ -113,8 +115,10 @@ git push
     - `#team .section-title .accent`：lime on green → 改為白色
     - `#team .section-desc`：`rgba(255,255,255,0.7)` → `0.9`
     - `.footer-copy`：`rgba(255,255,255,0.45)` → `0.55`
+18. Hero H1 視覺改為「韭點開始」，SEO 保留「台灣頂尖短影音 · 社群行銷團隊」（用 `.sr-only` span 隱藏於 DOM，Google 可爬取但視覺不顯示）；移除 hero-sub 段落的「韭點開始，」
+19. SEO 三大客群關鍵字優化（不改前台顯示）：`<title>` / `og:title` / `twitter:title` 改為「台灣整合行銷外包 · 品牌業配短影音 · 社群代操」；`meta description` / `og:description` / `twitter:description` 加入整合行銷外包、社群代操、活動行銷；`meta keywords` 補齊整合行銷、整合行銷外包、社群代操、活動行銷、活動曝光、行銷公司台灣、KOL合作；JSON-LD FAQPage 從 6 題擴充為 8 題，覆蓋品牌業配/整合行銷/活動行銷三大客群
 
-## PageSpeed 分數（2026-03-10 Lighthouse 桌機版）
+## PageSpeed 分數（2026-03-11 Lighthouse 桌機版）
 - Performance: 55（主因：未壓縮 CSS/JS、網路延遲）
 - Accessibility: 96 → 修正後預計 100
 - Best Practices: 100
