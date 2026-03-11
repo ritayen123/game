@@ -118,7 +118,7 @@ git push
 18. Hero H1 視覺改為「韭點開始」，SEO 保留「台灣頂尖短影音 · 社群行銷團隊」（用 `.sr-only` span 隱藏於 DOM，Google 可爬取但視覺不顯示）；移除 hero-sub 段落的「韭點開始，」
 19. SEO 三大客群關鍵字優化（不改前台顯示）：`<title>` / `og:title` / `twitter:title` 改為「台灣整合行銷外包 · 品牌業配短影音 · 社群代操」；`meta description` / `og:description` / `twitter:description` 加入整合行銷外包、社群代操、活動行銷；`meta keywords` 補齊整合行銷、整合行銷外包、社群代操、活動行銷、活動曝光、行銷公司台灣、KOL合作；JSON-LD FAQPage 從 6 題擴充為 8 題，覆蓋品牌業配/整合行銷/活動行銷三大客群
 
-## PageSpeed 分數（2026-03-11 Lighthouse 桌機版）
+## PageSpeed 分數（2026-03-12 Lighthouse 桌機版）
 - Performance: 55（主因：未壓縮 CSS/JS、網路延遲）
 - Accessibility: 96 → 修正後預計 100
 - Best Practices: 100
