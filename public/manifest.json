@@ -1,7 +1,7 @@
 {
-  "name": "韭點開始接字遊戲",
-  "short_name": "接字遊戲",
-  "description": "多人即時接字遊戲",
+  "name": "韭點開始加字挑戰",
+  "short_name": "加字挑戰",
+  "description": "多人即時加字挑戰",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#84D2DD",

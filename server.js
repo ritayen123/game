@@ -711,6 +711,6 @@ setInterval(() => {
 // ─── 啟動伺服器 ──────────────────────────────────────────
 const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => {
-  console.log(`\n🎮 接字遊戲伺服器啟動`);
+  console.log(`\n🎮 加字挑戰伺服器啟動`);
   console.log(`   http://localhost:${PORT}\n`);
 });

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>韭點開始接字遊戲</title>
+<title>韭點開始加字挑戰</title>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-XS6YX0NE59"></script>
 <script>
@@ -1035,18 +1035,51 @@
   /* Winner share card */
   .share-card.winner-card .share-card-header {
     background: var(--accent2);
-    font-size: 19px;
-    letter-spacing: 2px;
   }
   .share-winner-tag {
     background: var(--accent2);
     border-bottom: 2px solid var(--border);
-    padding: 7px 12px;
+    padding: 9px 14px;
     text-align: center;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 900;
     letter-spacing: 0.5px;
     color: var(--text);
+  }
+
+  /* Share card CTA / URL */
+  .sc-cta {
+    border-top: 1px solid #e8e8e8;
+    padding: 8px 4px 4px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .sc-cta-sub {
+    font-size: 11px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .sc-cta-url {
+    font-size: 14px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: 0.3px;
+  }
+
+  /* Sentence section: colored left accent stripe */
+  .sc-sentence-section {
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+    border-left: 5px solid var(--teal);
+    padding: 10px 12px;
+    box-shadow: 2px 2px 0 #000;
+  }
+  .winner-card .sc-sentence-section {
+    border-left-color: var(--border);
+    background: var(--accent2);
   }
 
   /* ── Toast 通知 ── */
@@ -1813,7 +1846,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="接字遊戲">
+<meta name="apple-mobile-web-app-title" content="加字挑戰">
 <link rel="apple-touch-icon" href="/icon.jpg">
 </head>
 <body>
@@ -1896,7 +1929,7 @@
 <!-- ══════════════ JOIN SCREEN ══════════════ -->
 <div class="screen active" id="join-screen">
   <div class="join-logo"><a href="https://fromnineon.com" target="_blank" rel="noopener noreferrer" onclick="track('logo_click')"><img src="/logo.jpg" alt="韭點開始"></a></div>
-  <div class="join-title">韭點開始接字遊戲</div>
+  <div class="join-title">韭點開始加字挑戰</div>
   <div class="join-card">
     <div class="field">
       <label>你的名字</label>
@@ -2918,11 +2951,11 @@ async function buildResultCanvas() {
   await new Promise(resolve => {
     const el = document.createElement('div');
     el.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0.01;font:900 1px "Noto Sans TC"';
-    el.textContent = '韭點開始接字遊戲存活到最後被敲頭超時追蹤';
+    el.textContent = '韭點開始加字挑戰存活到最後被敲頭超時追蹤';
     document.body.appendChild(el);
     requestAnimationFrame(() => requestAnimationFrame(() => { document.body.removeChild(el); resolve(); }));
   });
-  const t = '韭點開始接字遊戲存活到最後被敲頭超時追蹤';
+  const t = '韭點開始加字挑戰存活到最後被敲頭超時追蹤';
   await Promise.all([
     document.fonts.load('900 60px "Noto Sans TC"', t),
     document.fonts.load('700 36px "Noto Sans TC"', t),
@@ -3013,17 +3046,43 @@ async function buildResultCanvas() {
     ctx.fillRect(0, 0, W, H);
   }
 
-  // ── 7. 卡片陰影 + 本體 ──
-  ctx.fillStyle = BK;
-  ctx.fillRect(CARD_X + 10, CARD_Y + 10, CARD_W, CARD_H);
-  ctx.fillStyle = WH;
-  ctx.fillRect(CARD_X, CARD_Y, CARD_W, CARD_H);
-  ctx.strokeStyle = BK; ctx.lineWidth = 5;
-  ctx.strokeRect(CARD_X, CARD_Y, CARD_W, CARD_H);
+  // ── roundRect 輔助（支援圓角，含降級 fallback）──
+  function rr(x, y, w, h, radii) {
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(x, y, w, h, radii);
+    } else {
+      const [tl, tr, br, bl] = Array.isArray(radii) ? radii : [radii, radii, radii, radii];
+      ctx.moveTo(x + tl, y);
+      ctx.lineTo(x + w - tr, y); ctx.quadraticCurveTo(x + w, y, x + w, y + tr);
+      ctx.lineTo(x + w, y + h - br); ctx.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+      ctx.lineTo(x + bl, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - bl);
+      ctx.lineTo(x, y + tl); ctx.quadraticCurveTo(x, y, x + tl, y);
+      ctx.closePath();
+    }
+  }
+  const CR = 22; // card corner radius
 
-  // ── 8. Header ──
+  // ── 7. 卡片陰影 + 本體 ──
+  rr(CARD_X + 12, CARD_Y + 12, CARD_W, CARD_H, CR);
+  ctx.fillStyle = BK; ctx.fill();
+
+  rr(CARD_X, CARD_Y, CARD_W, CARD_H, CR);
+  ctx.fillStyle = WH; ctx.fill();
+
+  // ── 8. Header（clip 至卡片邊界，頂部圓角正確）──
+  ctx.save();
+  rr(CARD_X, CARD_Y, CARD_W, CARD_H, CR);
+  ctx.clip();
   ctx.fillStyle = amWinner ? BK : TEAL;
   ctx.fillRect(CARD_X, CARD_Y, CARD_W, HDR_H);
+  ctx.restore();
+
+  // 卡片邊框（clip 結束後再畫）
+  rr(CARD_X, CARD_Y, CARD_W, CARD_H, CR);
+  ctx.strokeStyle = BK; ctx.lineWidth = 5; ctx.stroke();
+
+  // Header 底線 + 文字
   ctx.strokeStyle = BK; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.moveTo(CARD_X, CARD_Y+HDR_H); ctx.lineTo(CARD_X+CARD_W, CARD_Y+HDR_H); ctx.stroke();
   if (amWinner) {
@@ -3032,11 +3091,11 @@ async function buildResultCanvas() {
     ctx.fillText('我是第一名！沒人能贏我', W/2, CARD_Y + HDR_H * 0.45);
     ctx.font = '500 22px "Noto Sans TC"';
     ctx.fillStyle = 'rgba(255,255,255,0.7)';
-    ctx.fillText('韭點開始接字遊戲', W/2, CARD_Y + HDR_H * 0.82);
+    ctx.fillText('韭點開始加字挑戰', W/2, CARD_Y + HDR_H * 0.82);
   } else {
     ctx.font = '900 50px "Noto Sans TC"';
     ctx.fillStyle = BK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('韭點開始接字遊戲', W/2, CARD_Y + HDR_H/2);
+    ctx.fillText('韭點開始加字挑戰', W/2, CARD_Y + HDR_H/2);
   }
 
   let y = CARD_Y + HDR_H + IPAD;
@@ -3148,9 +3207,9 @@ async function buildResultCanvas() {
   ctx.fillText('@from_nine_on', W/2, y + 14);
   y += 36;
 
-  ctx.font = '500 22px "Noto Sans TC"';
-  ctx.fillStyle = MUTED; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('追蹤我們，每天韭點來看我們在幹嘛 🌱', W/2, y + 12);
+  ctx.font = '700 26px "Noto Sans TC"';
+  ctx.fillStyle = amWinner ? BK : TEAL; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('game.fromnineon.com', W/2, y + 12);
 
   // ── 12. 截圖並返回 ──
   await new Promise(resolve => requestAnimationFrame(resolve));
@@ -3167,11 +3226,13 @@ function shareResult() {
   track('share_click', { method: 'open_modal' });
   const sentChars = [...finalSentence];
 
-  // 句子列
+  // 句子列（帶樣式外框）
   const scFontSize = sentChars.length <= 10 ? '28px' : sentChars.length <= 20 ? '22px' : sentChars.length <= 30 ? '17px' : sentChars.length <= 50 ? '14px' : '12px';
   const sentHTML = sentChars.length ? `
-    <div class="sc-label">本局最終句子</div>
-    <div class="sc-sentence" style="font-size:${scFontSize}">${sentChars.map(ch => `<span>${esc(ch)}</span>`).join('')}</div>
+    <div class="sc-sentence-section">
+      <div class="sc-label">本局最終句子</div>
+      <div class="sc-sentence" style="font-size:${scFontSize};margin-top:6px">${sentChars.map(ch => `<span>${esc(ch)}</span>`).join('')}</div>
+    </div>
   ` : '';
 
   // 排名列
@@ -3201,17 +3262,18 @@ function shareResult() {
   const cardEl   = document.getElementById('share-card-el');
   const headerEl = document.getElementById('share-card-header-el');
   const winTagEl = document.getElementById('share-winner-tag');
+  headerEl.textContent = '韭點開始加字挑戰';
   if (amWinner) {
     cardEl.classList.add('winner-card');
-    headerEl.textContent = '🏆 我是第一名！沒人能贏我😎';
     winTagEl.style.display = '';
   } else {
     cardEl.classList.remove('winner-card');
-    headerEl.textContent = '韭點開始接字遊戲';
     winTagEl.style.display = 'none';
   }
 
-  document.getElementById('share-card-inner').innerHTML = `${sentHTML}${ranksHTML}`;
+  const ctaLine = amWinner ? '你敢來挑戰我嗎？' : '一起來玩吧！';
+  const ctaHTML = `<div class="sc-cta"><div class="sc-cta-sub">${ctaLine}</div><div class="sc-cta-url">game.fromnineon.com</div></div>`;
+  document.getElementById('share-card-inner').innerHTML = `${sentHTML}${ranksHTML}${ctaHTML}`;
   document.getElementById('share-img-modal').classList.remove('hidden');
   refreshIcons();
 
@@ -3240,7 +3302,7 @@ function shareToIG() {
     if (navigator.canShare?.({ files: [file] })) {
       navigator.share({
         files: [file],
-        title: '韭點開始接字遊戲'
+        title: '韭點開始加字挑戰'
       }).catch(() => {});
       return;
     }
@@ -3680,7 +3742,7 @@ document.getElementById('panel-toggle').addEventListener('click', () => {
     </div>
     <!-- HTML 分享卡（截圖分享用）-->
     <div class="share-card" id="share-card-el">
-      <div class="share-card-header" id="share-card-header-el">韭點開始接字遊戲</div>
+      <div class="share-card-header" id="share-card-header-el">韭點開始加字挑戰</div>
       <div class="share-winner-tag" id="share-winner-tag" style="display:none">🏆 我是第一名！沒人能贏我😎</div>
       <div class="share-card-body" id="share-card-inner"></div>
       <div class="share-card-footer">
