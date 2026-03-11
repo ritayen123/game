@@ -2711,7 +2711,7 @@ socket.on('knockVote', ({ votes, required, voterName }) => {
   const fill = document.querySelector('.knock-progress-fill');
   const label = document.querySelector('.knock-votes-label');
   if (fill)  fill.style.width = `${pct}%`;
-  if (label) label.innerHTML = `${ico('hammer', 16)} 敲頭投票中 &nbsp;—&nbsp; 已投 <strong>${votes}</strong> / 需要 ${required} 票`;
+  if (label) { label.innerHTML = `${ico('hammer', 16)} 敲頭投票中 &nbsp;—&nbsp; 已投 <strong>${votes}</strong> / 需要 ${required} 票`; refreshIcons(); }
 });
 
 socket.on('knocked', ({ playerId, playerName }) => {
@@ -3616,6 +3616,7 @@ function leaveRoom() {
   isSpectating = false;
   awaitingReset = false;
   pendingRoomReset = false;
+  clearInterval(lobbyInterval); lobbyInterval = null; lobbyEndTime = null;
   showScreen('join-screen');
 }
 
