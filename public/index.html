@@ -102,8 +102,15 @@
     font-weight: 900;
     letter-spacing: 4px;
     color: var(--text);
-    margin-bottom: 28px;
+    margin-bottom: 10px;
     text-align: center;
+  }
+  .online-count {
+    font-size: 13px;
+    color: var(--teal);
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
   }
 
   .join-sub {
@@ -1964,6 +1971,7 @@
 <div class="screen active" id="join-screen">
   <div class="join-logo"><a href="https://fromnineon.com" target="_blank" rel="noopener noreferrer" onclick="track('logo_click')"><img src="/logo.webp" alt="韭點開始"></a></div>
   <div class="join-title">韭點開始加字挑戰</div>
+  <div class="online-count" id="online-count" style="display:none">· 目前 <span id="online-num">0</span> 人在線 ·</div>
   <div class="join-card">
     <div class="field">
       <label>你的名字</label>
@@ -2613,6 +2621,17 @@ function render(state) {
 // ─────────────────────────────────────────────────────────────
 // Socket Events
 // ─────────────────────────────────────────────────────────────
+socket.on('onlineCount', (count) => {
+  const el = document.getElementById('online-count');
+  if (!el) return;
+  if (count >= 2) {
+    document.getElementById('online-num').textContent = count;
+    el.style.display = 'block';
+  } else {
+    el.style.display = 'none';
+  }
+});
+
 socket.on('joined', ({ playerId, roomId, isPending, isRandom, isNewRoom }) => {
   myId         = playerId;
   myRoomId     = roomId;
