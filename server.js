@@ -416,7 +416,7 @@ function findOrCreateRandomRoom() {
 
 // ─── Socket.io 事件 ──────────────────────────────────────
 io.on('connection', (socket) => {
-  io.emit('onlineCount', io.engine.clientsCount);
+  io.emit('onlineCount', io.sockets.sockets.size);
 
   // 加入房間
   socket.on('join', ({ name, roomId, mode }) => {
@@ -600,7 +600,7 @@ io.on('connection', (socket) => {
 
   // 斷線處理
   socket.on('disconnect', () => {
-    io.emit('onlineCount', io.engine.clientsCount);
+    io.emit('onlineCount', io.sockets.sockets.size);
     const roomId = socket.data.roomId;
     if (!roomId) return;
     const room = rooms.get(roomId);
