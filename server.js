@@ -12,6 +12,7 @@ const io = new Server(httpServer, {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.get('/api/online', (req, res) => res.json({ count: io.sockets.sockets.size }));
 
 // ─── 常數 ───────────────────────────────────────────────
 const TURN_TIME    = 15;    // 每輪秒數
