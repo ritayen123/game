@@ -56,6 +56,7 @@ git push
 25. 補齊縮圖圖示：加入 favicon.png(32×32)、icon-192.png(192×192)、icon-512.png(512×512)、og-image.jpg(1200×630)；index.html 補齊 OG/Twitter Card/apple-touch-icon/PWA/msapplication meta tags；manifest.json 更新為三個正確尺寸 PNG 圖示
 26. 修正 4 個玩家體驗 bug：(1) gameOver 改用 winnerId 判斷贏家，修正同名玩家贏家畫面錯誤；(2) 斷線玩家補入 eliminationOrder，結算排名顯示「斷線離開」；(3) accepted 事件立即更新 currentSentence，消除 ~1.5s 顯示舊句子；(4) knockVote label 保留錘子圖示
 27. 修正 2 個衍生小 bug：knockVote label 更新後補 refreshIcons()（確保錘子 SVG 立即渲染）；leaveRoom 補清除 lobbyInterval（防止離開後計時器繼續背景執行）
+28. 載入速度優化：Google Fonts `@import` 改為 `<link preload>` 非阻塞載入；`logo.jpg` 轉 WebP（62KB→7KB，-89%），3 處引用全更新；Lucide/Socket.io 無法加 `defer`（inline script 直接依賴，加了遊戲會壞）
 
 ## Google Analytics
 - `fromnineon.com`：`G-K318HMNR62`（在 `/Users/yen/Project/fromnineon/index.html`）
