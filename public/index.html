@@ -29,8 +29,11 @@
   gtag('js', new Date());
   gtag('config', 'G-XS6YX0NE59');
 </script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'" />
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" /></noscript>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1959,7 +1962,7 @@
 
 <!-- ══════════════ JOIN SCREEN ══════════════ -->
 <div class="screen active" id="join-screen">
-  <div class="join-logo"><a href="https://fromnineon.com" target="_blank" rel="noopener noreferrer" onclick="track('logo_click')"><img src="/logo.jpg" alt="韭點開始"></a></div>
+  <div class="join-logo"><a href="https://fromnineon.com" target="_blank" rel="noopener noreferrer" onclick="track('logo_click')"><img src="/logo.webp" alt="韭點開始"></a></div>
   <div class="join-title">韭點開始加字挑戰</div>
   <div class="join-card">
     <div class="field">
@@ -3009,7 +3012,7 @@ async function buildResultCanvas() {
   const logo = await new Promise(resolve => {
     const img = new Image();
     img.onload = () => resolve(img); img.onerror = () => resolve(null);
-    img.src = '/logo.jpg';
+    img.src = '/logo.webp';
   });
 
   const TEAL = '#84D2DD', LIME = '#AAF952', BK = '#000', WH = '#fff', MUTED = '#777';
@@ -3787,7 +3790,7 @@ document.getElementById('panel-toggle').addEventListener('click', () => {
       <div class="share-card-header" id="share-card-header-el">韭點開始加字挑戰</div>
       <div class="share-card-body" id="share-card-inner"></div>
       <div class="share-card-footer">
-        <img src="/logo.jpg" alt="韭點開始">
+        <img src="/logo.webp" alt="韭點開始">
         <div class="share-card-footer-text">@from_nine_on &nbsp;追蹤我們，每天韭點來看我們在幹嘛 🌱</div>
       </div>
     </div>
