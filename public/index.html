@@ -1817,6 +1817,10 @@
     .toast-container { max-width: 440px; }
     /* Tutorial modal 也限寬 */
     .tutorial-modal { max-width: 480px; margin: 0 auto; }
+    /* 桌機顯示橫向捲軸，讓用戶知道句子可以左右滑動 */
+    .sentence-picker { scrollbar-width: thin; scrollbar-color: #aaa transparent; }
+    .sentence-picker::-webkit-scrollbar { display: block; height: 4px; }
+    .sentence-picker::-webkit-scrollbar-thumb { background: #aaa; border-radius: 2px; }
   }
 
   /* ── 短螢幕（iPhone SE、舊 Android、橫向手機）── */
