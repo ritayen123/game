@@ -58,6 +58,7 @@ git push
 27. 修正 2 個衍生小 bug：knockVote label 更新後補 refreshIcons()（確保錘子 SVG 立即渲染）；leaveRoom 補清除 lobbyInterval（防止離開後計時器繼續背景執行）
 28. 載入速度優化：Google Fonts `@import` 改為 `<link preload>` 非阻塞載入；`logo.jpg` 轉 WebP（62KB→7KB，-89%），3 處引用全更新；Lucide/Socket.io 無法加 `defer`（inline script 直接依賴，加了遊戲會壞）
 29. 首頁顯示線上人數：server 在 connect/disconnect 時廣播 `onlineCount` 給所有 client；標題下方顯示「· 目前 N 人在線 ·」，人數 < 2 時自動隱藏；計數改用 `io.sockets.sockets.size`（`io.engine.clientsCount` 時序不穩）；新增 `GET /api/online` 端點供 debug 查詢即時人數；修正文字色 teal on teal 不可見問題（改為 `rgba(0,0,0,0.55)`）
+30. 桌機長句 UX 修正：句子選擇器底部在桌機（≥540px）顯示 4px 細捲軸（`scrollbar-width: thin`），讓用戶知道可橫向滑動選擇插入位置；手機維持隱藏捲軸不受影響
 
 ## Google Analytics
 - `fromnineon.com`：`G-K318HMNR62`（在 `/Users/yen/Project/fromnineon/index.html`）
